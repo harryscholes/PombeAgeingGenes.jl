@@ -407,4 +407,4 @@ end
 # Gene network embeddings
 @file NetworkEmbeddings "$(ENV["POMBAGEDB"])/Data/network_embeddings/network_embeddings.csv"
 
-load(f::NetworkEmbeddings) = DataFrame(load(filepath(f)))
+load(f::NetworkEmbeddingsFile) = DataFrame(load(filepath(f)))
