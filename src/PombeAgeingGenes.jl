@@ -1,14 +1,18 @@
 module PombeAgeingGenes
 
-using DataFrames, Statistics, StatsBase, MLBase, Printf, HypothesisTests,
-    Random, CSVFiles, MLDataUtils, DecisionTree, Distances, Clustering, Plots,
-    Plots.PlotMeasures # TODO FIX ME
+using
+    DataFrames,
+    Statistics,
+    StatsBase,
+    MLBase,
+    Printf,
+    Random,
+    CSVFiles,
+    MLDataUtils
 
 import FileIO: load
 import Base: precision
 import MLDataUtils: default_obsdim
-import Clustering: nnodes
-import StatsPlots: treepositions
 
 include("utils.jl")
 
@@ -38,13 +42,8 @@ export
 include("ml.jl")
 
 export
-    traintestsplit,
-    standardize,
-    softmax,
-    CrossValidation,
-    fit,
-    ML,
     stratifiedkfolds,
+    @crossvalidate,
     tp,
     fn,
     fp,
@@ -57,15 +56,17 @@ export
     PR,
     @plotpr,
     mcc,
-    auc
+    auc,
+    ML,
+    NetworkEmbeddings
 
-include("fisherlineardiscriminant.jl")
-
-export
-    FisherLinearDiscriminant,
-    evaluate,
-    probability,
-    predict
+# include("fisherlineardiscriminant.jl")
+#
+# export
+#     FisherLinearDiscriminant,
+#     evaluate,
+#     probability,
+#     predict
 
 include("growthphenotypes.jl")
 
@@ -88,9 +89,14 @@ export
     removerepeats!,
     removerepeats
 
-include("plotting.jl")
-
-export
-    clusteredheatmap
+# using Distances, Clustering, Plots, Plots.PlotMeasures
+#
+# import Clustering: nnodes
+# import StatsPlots: treepositions
+#
+# include("plotting.jl")
+#
+# export
+#     clusteredheatmap
 
 end # module
