@@ -1,5 +1,7 @@
 # CV
 
+export shuffleobs, kfolds # From MLDataUtils, required for @crossvalidate
+
 """
     @crossvalidate(X, y[, k=5[, f=stratifiedkfolds]], ex)
 
@@ -9,6 +11,21 @@ partitioning function `f` and loop body `ex`.
 The variables `Xtrain`, `ytrain`, `Xtest` and `ytest` are available to the cross-validation
 Expr `ex`. `ex` should return the predicted probabilities for `Xtest`. `Performance`
 prediction metrics for each fold  and a `PR` precision-recall curve are returned.
+
+# Example
+
+```julia
+using PombeAgeingGenes, DecisionTree
+
+X = rand(10, 1000)
+y = rand(Bool, 1000)
+
+@crossvalidate X y 5 kfolds begin
+    model = RandomForestRegressor()
+    DecisionTree.fit!(model, permutedims(Xtrain), collect(ytrain))
+    ŷ = DecisionTree.predict(model, permutedims(Xtest))
+end
+```
 """
 macro crossvalidate(args...)
     # Required
