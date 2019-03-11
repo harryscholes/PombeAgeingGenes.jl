@@ -1,55 +1,49 @@
-#=
-standardize(A; dims=:) = (A .- mean(A, dims=dims)) ./ std(A, dims=dims)
-standardize!(A; dims=:) = A .= (A .- mean(A, dims=dims)) ./ std(A, dims=dims)
-
-function standardize!(df::DataFrame)
-    for col = 1:size(df,2)
-        if df[col] isa AbstractArray{<:Real} && !(df[col] isa AbstractArray{Bool})
-            df[col] = standardize(df[col])
-        end
-    end
-    df
-end
-=#
-
-softmax(X; dims=1) = exp.(X) ./ sum(exp.(X), dims=dims)
-
-#=
-testidxs(xs::AbstractVector, trainidxs) = setdiff(1:size(xs, 1), trainidxs)
-testidxs(xs, trainidxs; dims=2) = setdiff(1:size(xs, dims), trainidxs)
-
-"""
-    traintestsplit(xs, trainidxs)
-
-Split `xs` into training and testing sets using training indexes `trainidxs`. `xs` can either be a Vector or a [examples × features] Matrix.
-"""
-function traintestsplit(xs::AbstractVector, trainidxs::AbstractVector)
-    xs[trainidxs], xs[testidxs(xs, trainidxs, dims=1)]
-end
-function traintestsplit(xs::AbstractMatrix, trainidxs::AbstractVector; dims=2)
-    test = testidxs(xs, trainidxs, dims=dims)
-    if dims == 2
-        xs[:,trainidxs], xs[:,test]
-    elseif dims == 1
-        xs[trainidxs,:], xs[test,:]
-    end
-end
-=#
-
 # CV
 
-struct CrossValidation
-    k::Int
-end
-
 """
-    fit(CV(k[, n]), Model, X, y)
+    @crossvalidate(X, y[, k=5[, f=stratifiedkfolds]], ex)
 
-Estimate the performance of a model `Model` using `X` training data and `y` labels with `k`
-k-fold cross-validation. Optionally, k-fold cross-validation can be performed `n` times.
+Estimate the performance of a model using features `X` and labels `y` in `k` folds using
+partitioning function `f` and loop body `ex`.
+
+The variables `Xtrain`, `ytrain`, `Xtest` and `ytest` are available to the cross-validation
+Expr `ex`. `ex` should return the predicted probabilities for `Xtest`. `Performance`
+prediction metrics for each fold  and a `PR` precision-recall curve are returned.
 """
-function StatsBase.fit(CV::CrossValidation, Model::Type, X, y; kwargs...)
-    crossvalidate(Model, X, y, CV.k; kwargs...)
+macro crossvalidate(args...)
+    # Required
+    X = args[1]
+    y = args[2]
+    ex = args[end]
+
+    # Optional
+    k = 5
+    f = stratifiedkfolds
+
+    na = length(args)
+
+    if na == 4
+        k = args[3]
+    elseif na == 5
+        k = args[3]
+        f = args[4]
+    else
+        na != 3 && throw(ArgumentError("wrong number of arguments to @crossvalidate"))
+    end
+
+    esc(quote
+        local data = shuffleobs(($X, $y))
+        local ys = []
+        local ŷs = []
+
+        for ((Xtrain, ytrain), (Xtest, ytest)) = ($f)(data, $k)
+            ŷ = $ex
+            push!(ys, ytest)
+            push!(ŷs, ŷ)
+        end
+
+        Performance.(ŷs, ys), PR(vcat(ŷs...), vcat(ys...))
+    end)
 end
 
 # Stratified k-fold cross-validation
@@ -74,48 +68,6 @@ end
 
 function stratifiedkfolds(data, k::Integer=5, obsdim=default_obsdim(data))
     stratifiedkfolds(identity, data, k, obsdim)
-end
-
-#=
-function crossvalidate(Model::Type, X::AbstractMatrix, y::AbstractVector, k; kwargs...)
-    ŷs = Vector{Float64}[]
-    ys = Vector{Float64}[]
-
-    for (i, trainidxs) = enumerate(StratifiedKfold(y, k))
-        X_, tX = traintestsplit(X, trainidxs, dims=2)
-        y_, ty = traintestsplit(y, trainidxs)
-        ŷ = kthfold(Model, X_, y_, tX; trainidxs=trainidxs,
-                    testidxs=testidxs(X, trainidxs), kwargs...)
-        push!(ŷs, ŷ)
-        push!(ys, ty)
-    end
-
-    Performance(ŷs, ys), PR(vcat(ŷs...), vcat(ys...))
-end
-=#
-
-function crossvalidate(Model::Type, X::AbstractMatrix, y::AbstractVector, k::Int; kwargs...)
-    ŷs = Vector{Float64}[]
-    ys = Vector{Float64}[]
-
-    for ((Xtrain, ytrain), (Xtest, ytest)) = stratifiedkfolds((X, y), k)
-        ŷ = kthfold(Model, Xtrain, ytrain, Xtest; kwargs...)
-        push!(ŷs, ŷ)
-        push!(ys, ytest)
-    end
-
-    Performance.(ŷs, ys), PR(vcat(ŷs...), vcat(ys...))
-end
-
-# Decision trees
-
-DecisionTreeType = Union{DecisionTreeClassifier, RandomForestClassifier,
-                         AdaBoostStumpClassifier}
-
-function kthfold(Model::Type{<:DecisionTreeType}, Xtrain, ytrain, Xtest; kwargs...)
-    model = Model(; kwargs...)
-    DecisionTree.fit!(model, collect(Xtrain'), collect(ytrain))
-    ŷ = DecisionTree.predict(model, collect(Xtest'))
 end
 
 # Performance metrics
@@ -431,20 +383,28 @@ struct MLFileCollection <: AbstractFileCollection end
 const ML = MLFileCollection()
 
 function load(::MLFileCollection, T::Type=DataFrame;
-              X::DataFrame=load(GrowthPhenotypesWideform),
-              Y::DataFrame=load(GeneOntology.GOSlimTargets),
-              center::Bool=true)
+              networkembeddings::Bool=false,
+              center::Bool=false)
+    Xs = []
+    push!(Xs, load(GrowthPhenotypesWideform))
+    networkembeddings && push!(Xs, load(NetworkEmbeddings))
+    length(Xs) > 1 ? (X = join(Xs..., on=:id)) : (X = Xs[1])
     center && center!(X)
 
-    commonids = sort(X[:id] ∩ Y[:id])
-    X = X[map(id->id ∈ commonids, X[:id]), :]
-    Y = Y[map(id->id ∈ commonids, Y[:id]), :]
-    sort!(X, :id)
-    sort!(Y, :id)
+    Y = load(GeneOntology.GOSlimTargets)
 
-    if !(T <: DataFrame)
+    commonids = sort(X[:id] ∩ Y[:id])
+    X = sort!(X[map(id->id ∈ commonids, X[:id]), :], :id)
+    Y = sort!(Y[map(id->id ∈ commonids, Y[:id]), :], :id)
+
+    if T <: AbstractMatrix
         return permutedims.(convert.(T{Float64}, (X[2:end], Y[2:end])))..., names(Y)[2:end]
     end
 
     X, Y
 end
+
+# Gene network embeddings
+@file NetworkEmbeddings "$(ENV["POMBAGEDB"])/Data/network_embeddings/network_embeddings.csv"
+
+load(f::NetworkEmbeddings) = DataFrame(load(filepath(f)))
