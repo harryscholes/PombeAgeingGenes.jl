@@ -383,20 +383,28 @@ struct MLFileCollection <: AbstractFileCollection end
 const ML = MLFileCollection()
 
 function load(::MLFileCollection, T::Type=DataFrame;
-              X::DataFrame=load(GrowthPhenotypesWideform),
-              Y::DataFrame=load(GeneOntology.GOSlimTargets),
-              center::Bool=true)
+              networkembeddings::Bool=false,
+              center::Bool=false)
+    Xs = []
+    push!(Xs, load(GrowthPhenotypesWideform))
+    networkembeddings && push!(Xs, load(NetworkEmbeddings))
+    length(Xs) > 1 ? (X = join(Xs..., on=:id)) : (X = Xs[1])
     center && center!(X)
 
-    commonids = sort(X[:id] ∩ Y[:id])
-    X = X[map(id->id ∈ commonids, X[:id]), :]
-    Y = Y[map(id->id ∈ commonids, Y[:id]), :]
-    sort!(X, :id)
-    sort!(Y, :id)
+    Y = load(GeneOntology.GOSlimTargets)
 
-    if !(T <: DataFrame)
+    commonids = sort(X[:id] ∩ Y[:id])
+    X = sort!(X[map(id->id ∈ commonids, X[:id]), :], :id)
+    Y = sort!(Y[map(id->id ∈ commonids, Y[:id]), :], :id)
+
+    if T <: AbstractMatrix
         return permutedims.(convert.(T{Float64}, (X[2:end], Y[2:end])))..., names(Y)[2:end]
     end
 
     X, Y
 end
+
+# Gene network embeddings
+@file NetworkEmbeddings "$(ENV["POMBAGEDB"])/Data/network_embeddings/network_embeddings.csv"
+
+load(f::NetworkEmbeddings) = DataFrame(load(filepath(f)))
