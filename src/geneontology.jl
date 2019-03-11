@@ -1,43 +1,40 @@
 module GeneOntology
 
 export
-    relationships,
-    evidencecodes,
-    evidencecodestrusted,
+    RELATIONSHIPS,
+    EVIDENCE_CODES,
+    EVIDENCE_CODES_TRUSTED,
     GO,
     GOAnnotations,
-    slim,
+    GO_SLIM_TERMS,
     slim2descendants,
     descendants2slim,
     GOSlimTargets,
-    writetargets
+    AGEING_FYPO_TERMS
 
 using PombeAgeingGenes, OBOParse, DataFrames
 
 import PombeAgeingGenes: load
 
 # Ontology
-const relationships = [:part_of, :is_a, :regulates, :positively_regulates,
+const GO_RELATIONSHIPS = [:part_of, :is_a, :regulates, :positively_regulates,
    :negatively_regulates]
 
-const evidencecodes = Dict(
+const EVIDENCE_CODES = Dict(
    :experimental => ["EXP", "IDA", "IPI", "IMP", "IGI", "IEP"],
    :curated      => ["ISS", "ISO", "ISA", "ISM", "IGC", "IBA",
                      "IBD", "IKR", "IRD", "RCA", "TAS", "IC"],
    :automatic    => ["IEA"])
 
-const evidencecodestrusted = [evidencecodes[:experimental]; evidencecodes[:curated]]
+const EVIDENCE_CODES_TRUSTED = [EVIDENCE_CODES[:experimental]; EVIDENCE_CODES[:curated]]
 
 function OBOParse.descendants(ontology::Ontology, term::AbstractString)
-    map(x->x.id, descendants(ontology, ontology[term], relationships))
+    map(x->x.id, descendants(ontology, ontology[term], GO_RELATIONSHIPS))
 end
 
 @file GO "$(ENV["POMBAGEDB"])/Data/go-basic.obo"
 
-function load(F::GOFile)
-    isfile(F)
-    OBOParse.load(filepath(F), "GO")
-end
+load(F::GOFile) = OBOParse.load(filepath(F), "GO")
 
 # Annotations
 @file GOAnnotations "$(ENV["POMBAGEDB"])/Data/gene_association.pombase"
@@ -48,13 +45,12 @@ struct Annotation
     ec::String
 end
 
-function load(F::GOAnnotationsFile; ecs=evidencecodestrusted)
-    isfile(F)
+function load(F::GOAnnotationsFile; ecs=EVIDENCE_CODES_TRUSTED)
     annotations = Annotation[]
 
     open(F) do f
         for l = eachline(f)
-            startswith(l, comment(F)) && continue
+            startswith(l, "!") && continue # comment lines
 
             s = split(l)
             a = Annotation(s[2], s[4], s[6])
@@ -71,7 +67,7 @@ function load(F::GOAnnotationsFile; ecs=evidencecodestrusted)
 end
 
 # Slim
-const slim = [
+const GO_SLIM_TERMS = [
    "GO:0030036", "GO:0006915", "GO:0030437", "GO:0006914", "GO:0005975", "GO:0006766",
    "GO:0007155", "GO:0071554", "GO:0006520", "GO:0006325", "GO:0051186", "GO:0000747",
    "GO:0002181", "GO:0098754", "GO:0006310", "GO:0006281", "GO:0006260", "GO:0007163",
@@ -82,25 +78,19 @@ const slim = [
    "GO:0006355", "GO:0042254", "GO:0023052", "GO:0016074", "GO:0016073", "GO:0006790",
    "GO:0032200", "GO:0006351", "GO:0055085", "GO:0006399", "GO:0016192"]
 
-function slim2descendants(ontology=nothing)
-    if ontology === nothing
-        ontology = load(GO)
-    end
+"""
+Map GO Slim terms to their descendent terms in the GO.
+"""
+slim2descendants(ontology) = Dict(t=>descendants(ontology, t) for t = GO_SLIM_TERMS)
 
-    Dict(t=>descendants(ontology, t) for t = slim)
-end
-
-function descendants2slim(s2d=nothing)
-    if s2d === nothing
-        s2d = slim2descendants()
-    end
-
+"""
+Map GO terms to all GO Slim ancestor terms.
+"""
+function descendants2slim(s2d)
     d = Dict{String,Set{String}}()
-
     for (k, vs) = s2d, v = vs
         haskey(d, v) ? push!(d[v], k) : (d[v] = Set([k]))
     end
-
     d
 end
 
@@ -118,15 +108,13 @@ end
 
 load(F::GOSlimTargetsFile, goterm::Symbol) = load(F)[[:id, goterm]]
 
-# writetargets(df, path="$(ENV["POMBAGEDB"])/Data/goslim_targets.csv") = df |> CSV.write(path)
-
-#=
-Ageing
+"""
+Ageing FYPO terms
 
 - increased viability upon nitrogen starvation (FYPO:0004344)
 - increased viability in stationary phase (FYPO:0001309)
-=#
-const ageingterms = Dict(
+"""
+const AGEING_FYPO_TERMS = Dict(
     :FYPO0004344 => [
         "SPBC1861.02", "SPBC2G2.06c", "SPBC691.03c", "SPBC685.04c", "SPBC1D7.03",
         "SPBC428.08c", "SPAC4G9.11c", "SPAC23A1.06c", "SPAC1805.07c", "SPBC947.05c",
