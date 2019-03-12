@@ -400,6 +400,14 @@ struct MLFileCollection <: AbstractFileCollection end
 
 const ML = MLFileCollection()
 
+"""
+    load(ML[, T]; [networkembeddings], [center])
+
+Load features and targets for machine learning as `DataFrame`.
+
+If `T` is `Matrix`, convert to matrices. Optionally load the gene network embeddings if
+`networkembeddings` is `true`. Center the features if `center` is `true`.
+"""
 function load(::MLFileCollection, T::Type=DataFrame;
               networkembeddings::Bool=false,
               center::Bool=false)
