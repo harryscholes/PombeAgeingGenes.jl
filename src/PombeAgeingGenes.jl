@@ -8,7 +8,8 @@ using
     Printf,
     Random,
     CSVFiles,
-    MLDataUtils
+    MLDataUtils,
+    RecipesBase
 
 import FileIO: load
 import Base: precision
@@ -89,7 +90,7 @@ export
     removerepeats!,
     removerepeats
 
-# using Distances, Clustering, Plots, Plots.PlotMeasures
+# using Distances, Clustering, LinearAlgebra, Plots, Plots.PlotMeasures
 #
 # import Clustering: nnodes
 # import StatsPlots: treepositions

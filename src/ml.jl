@@ -360,40 +360,66 @@ for f = ("precision", "recall", "auc")
     @eval $(Symbol(f))(p::PR) = getfield(p, Symbol($f))
 end
 
-# Requires Plots.jl
-macro plotpr(PRs)
+@recipe function f(pr::PR; baseline=true, label=nothing)
+    xlabel := "Recall"
+    ylabel := "Precision"
+    xlim := (0,1)
+    ylim := (0,1)
+    size --> (400,350)
+    legend --> :topright
+
+    @series begin
+        seriestype := :line
+        label := "$(isnothing(label) ? "AUC" : label) = $(round(auc(pr), digits=3))"
+        recall(pr), precision(pr)
+    end
+
+    if baseline
+        @series begin
+            baseline = pr.p / pr.n
+            label := "Baseline = $(round(baseline, digits=3))"
+            c := :grey50
+            ls := :dash
+            seriestype := :hline
+            [baseline]
+        end
+    end
+end
+
+macro plotprs(args...)
+    na = length(args)
+
+    if na == 1
+        _plotprs(args[1])
+    elseif na == 2
+        _plotprswithlabels(args...)
+    else
+        throw(ArgumentError("wrong number of arguments to @plotprs"))
+    end
+end
+
+function _plotprs(prs)
     esc(quote
-        local _PRs = $PRs
-        if _PRs isa PR
-            _PRs = [_PRs]
+        local prs = $prs
+        fig = plot(prs[1])
+        for i = 2:length(prs)
+            plot!(fig, prs[i], baseline=false)
         end
-        local _pr = _PRs[1]
-        local _baseline = _pr.p / _pr.n
-
-        fig = plot($recall(_pr), $precision(_pr), label="AUC = $(round(auc(_pr), digits=3))",
-            xlabel="Recall", ylabel="Precision", size=(400,350), legend=:topright,
-            xlim=(0,1), ylim=(0,1))
-
-        for i = 2:length(_PRs)
-            _pr = _PRs[i]
-            plot!($recall(_pr), $precision(_pr), label="AUC = $(round(auc(_pr), digits=3))")
-        end
-
-        hline!([_baseline], label="Baseline $(round(_baseline, digits=3))", c=:black,
-            ls=:dash)
-
         fig
     end)
 end
 
-# macro plotpr(PR)
-#     esc(quote
-#         plot($recall($PR), $precision($PR), label=string(round(auc($PR), digits=3)),
-#             xlabel="Recall", ylabel="Precision", size=(400,350), legend=:topright)
-#         baseline = $PR.p / $PR.n
-#         hline!([baseline], label="Baseline $(round(baseline, digits=3))", c=:black, ls=:dash)
-#     end)
-# end
+function _plotprswithlabels(prs, labels)
+    esc(quote
+        local prs = $prs
+        local labels = $labels
+        fig = plot(prs[1], label=labels[1])
+        for i = 2:length(prs)
+            plot!(fig, prs[i], baseline=false, label=labels[i])
+        end
+        fig
+    end)
+end
 
 # Load ML
 
