@@ -45,6 +45,7 @@ include("ml.jl")
 export
     stratifiedkfolds,
     @crossvalidate,
+    @gridsearch,
     tp,
     fn,
     fp,

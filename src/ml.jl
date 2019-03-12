@@ -89,6 +89,71 @@ function stratifiedkfolds(data, k::Integer=5, obsdim=default_obsdim(data))
     stratifiedkfolds(identity, data, k, obsdim)
 end
 
+# Hyperparameter optimisation
+
+struct Hyperparameters
+    params
+end
+
+function Base.show(io::IO, H::Hyperparameters)
+    ps = H.params
+    for i = 1:length(ps)-1
+        print(io, ps[i][1], " => ", ps[i][2], ", ")
+    end
+    print(io, ps[end][1], " => ", ps[end][2])
+end
+
+"""
+    @gridsearch(f::Function, grid::Dict{Symbol,Vector})
+
+Perform hyperparameter optimisation using a grid search where combinations of
+hyperparameters contained in `grid` are passed to a fitting function `f`.
+
+`f` must have the signature `f(Xtrain, ytrain, Xtest; hyperparameters...)`.
+
+# Example
+
+```julia
+using PombeAgeingGenes, DecisionTree
+
+function f(Xtrain, ytrain, Xtest; kwargs...)
+    model = DecisionTree.fit!(RandomForestRegressor(; kwargs...), Xtrain, ytrain)
+    ŷ = DecisionTree.predict(model, Xtest)
+end
+
+grid = Dict(
+    :n_trees => [5,10,15],
+    :partial_sampling => [.6,.7,.8])
+
+p, pr = @crossvalidate X y begin
+    Xtrain = permutedims(Xtrain)
+    Xtest = permutedims(Xtest)
+    params = @gridsearch f grid
+    ŷ = rf(Xtrain, ytrain, Xtest; params...)
+end
+```
+"""
+macro gridsearch(f, grid)
+    esc(quote
+        local bestscore = 0.
+        local bestparams
+
+        for ps = Base.Iterators.product(values($grid)...)
+            local params = zip(keys($grid), ps)
+            local ŷ = ($f)(Xtrain, ytrain, Xtest; params...)
+            local currentscore = auc(PR(ŷ, ytest))
+
+            if currentscore > bestscore
+                bestparams = params
+                bestscore = currentscore
+            end
+        end
+
+        println(Hyperparameters(collect(bestparams)))
+        bestparams
+    end)
+end
+
 # Performance metrics
 
 # methods for tp, fn, fp, tn
