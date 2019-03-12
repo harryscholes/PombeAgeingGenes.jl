@@ -22,7 +22,7 @@ y = rand(Bool, 1000)
 
 @crossvalidate X y 5 kfolds begin
     model = RandomForestRegressor()
-    DecisionTree.fit!(model, permutedims(Xtrain), collect(ytrain))
+    DecisionTree.fit!(model, permutedims(Xtrain), ytrain)
     ŷ = DecisionTree.predict(model, permutedims(Xtest))
 end
 ```
@@ -54,6 +54,7 @@ macro crossvalidate(args...)
         local ŷs = []
 
         for ((Xtrain, ytrain), (Xtest, ytest)) = ($f)(data, $k)
+            Xtrain, ytrain, Xtest, ytest = map(collect, (Xtrain, ytrain, Xtest, ytest))
             ŷ = $ex
             push!(ys, ytest)
             push!(ŷs, ŷ)
