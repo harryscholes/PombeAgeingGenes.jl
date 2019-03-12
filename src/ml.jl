@@ -8,9 +8,10 @@ export shuffleobs, kfolds # From MLDataUtils, required for @crossvalidate
 Estimate the performance of a model using features `X` and labels `y` in `k` folds using
 partitioning function `f` and loop body `ex`.
 
-The variables `Xtrain`, `ytrain`, `Xtest` and `ytest` are available to the cross-validation
-Expr `ex`. `ex` should return the predicted probabilities for `Xtest`. `Performance`
-prediction metrics for each fold  and a `PR` precision-recall curve are returned.
+The data is shuffled prior to cross-validation. The variables `Xtrain`, `ytrain`, `Xtest`
+and `ytest` are available to `ex` in each fold. `ex` should return the predicted
+probabilities for `Xtest`. `Performance` prediction metrics for each fold  and a `PR`
+precision-recall curve are returned.
 
 # Example
 
