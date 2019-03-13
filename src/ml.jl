@@ -91,18 +91,6 @@ end
 
 # Hyperparameter optimisation
 
-struct Hyperparameters
-    params
-end
-
-function Base.show(io::IO, H::Hyperparameters)
-    ps = H.params
-    for i = 1:length(ps)-1
-        print(io, ps[i][1], " => ", ps[i][2], ", ")
-    end
-    print(io, ps[end][1], " => ", ps[end][2])
-end
-
 """
     @gridsearch(f::Function, grid::Dict{Symbol,Vector})
 
@@ -149,7 +137,12 @@ macro gridsearch(f, grid)
             end
         end
 
-        println(Hyperparameters(collect(bestparams)))
+        ps = collect(bestparams)
+        for i = 1:length(ps)-1
+            print(ps[i][1], " => ", ps[i][2], ", ")
+        end
+        print(ps[end][1], " => ", ps[end][2], "\n")
+
         bestparams
     end)
 end
