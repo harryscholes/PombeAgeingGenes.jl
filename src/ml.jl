@@ -423,44 +423,24 @@ end
     ylabel := "Precision"
     xlim := (0,1)
     ylim := (0,1)
-    size --> (500,350)
-
-    layout := @layout [prcurve legend{0.2w}]
-
-    legend := :none
-    aspect_ratio := :equal
+    size --> (400,350)
+    legend --> :topright
 
     @series begin
         seriestype := :line
-        subplot := 1
+        label := "$(isnothing(label) ? "AUC" : label) = $(round(auc(pr), digits=3))"
         recall(pr), precision(pr)
     end
 
     if baseline
         @series begin
-            subplot := 1
             baseline = pr.p / pr.n
+            label := "Baseline = $(round(baseline, digits=3))"
             c := :grey50
             ls := :dash
             seriestype := :hline
             [baseline]
         end
-    end
-
-    # Legend subplot
-    @series begin
-        seriestype := :line
-        subplot := 2
-        xlabel := ""
-        ylabel := ""
-        xlim := (3,4)
-        legend := :topright
-        aspect_ratio := :none
-        axis := :off
-        grid := :off
-        legendfontsize := 7
-        label := "$(isnothing(label) ? "AUC" : label) = $(round(auc(pr), digits=3))"
-        recall(pr), precision(pr)
     end
 end
 
