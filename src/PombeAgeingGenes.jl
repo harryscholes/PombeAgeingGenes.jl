@@ -40,8 +40,7 @@ export
     snr,
     coefvar,
     NullDistribution,
-    PValue,
-    pvalue
+    PValue
 
 include("ml.jl")
 

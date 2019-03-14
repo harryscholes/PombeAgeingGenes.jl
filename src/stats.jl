@@ -41,7 +41,7 @@ Base.IndexStyle(::NullDistribution) = IndexLinear()
 
 # p-values
 
-function pvalue(dbn::AbstractVector{<:Real}, instance::Real)
+function _pvalue(dbn::AbstractVector{<:Real}, instance::Real)
     (sum(dbn .> instance) + 1) / (length(dbn) + 1)
 end
 
@@ -72,7 +72,7 @@ function PValue(ŷ::AbstractVector, y::AbstractVector, n=10_000)
     f(ŷ, y) = auc(PR(ŷ, y))
     dbn = NullDistribution(f, ŷ, y, n)
     instance = f(ŷ, y)
-    PValue(pvalue(dbn, instance))
+    PValue(_pvalue(dbn, instance))
 end
 
-PValue(dbn::NullDistribution, instance) = PValue(pvalue(dbn, instance))
+PValue(dbn::NullDistribution, instance) = PValue(_pvalue(dbn, instance))
