@@ -4,30 +4,75 @@ snr(xs) = mean(xs) / std(xs)
 
 # Significance testing
 
-pvalue(null, x) = (sum(null .> x) + 1) / (length(null) + 1)
-
 """
-    NullDistribution{T<:Real} <: AbstractVector{T}
-    NullDistribution(f::Function, ŷ::AbstractArray, y::AbstractArray, n::Int=10_000)
+    NullDistribution([f::Function,] ŷ::AbstractArray, y::AbstractArray[, n=10_000])
 
-A type representing the null distribution of a test statistic of type `T`. `NullDistribution`s can be constructed by applying function `f` to `ŷ` predictions and `y` ground truths in `n` random permutations of `y`.
+Construct a null distribution for probabilities `ŷ` against ground truths `y`.
+
+`f` is applied to `n` random permutations of `y`. If `f` is not supplied PR AUC is calculated.
+
+# Example
+
+```julia
+ŷ = rand(1000)
+y = rand(Bool, 1000)
+nd = NullDistribution(ŷ, y)
+pvalue(nd, auc(PR(ŷ, y)))
+```
 """
 struct NullDistribution{T<:Real} <: AbstractVector{T}
     dbn::Vector{T}
 end
-function NullDistribution(f::Function, ŷ::AbstractArray, y::AbstractArray, n::Int=10_000)
+
+function NullDistribution(f::Function, ŷ::AbstractVector, y::AbstractVector, n=10_000)
     y = deepcopy(y)
-    res = Vector{typeof(f(ŷ,y))}(undef, n)
+    dbn = map(_->f(ŷ, shuffle!(y)), 1:n)
+    NullDistribution(dbn)
+end
 
-    for i = 1:n
-        shuffle!(y)
-        res[i] = f(ŷ, y)
-    end
-
-    NullDistribution(res)
+function NullDistribution(ŷ::AbstractVector, y::AbstractVector, n=10_000)
+    f(ŷ, y) = auc(PR(ŷ, y))
+    NullDistribution(f, ŷ, y, n)
 end
 
 Base.size(x::NullDistribution) = size(x.dbn)
 Base.getindex(x::NullDistribution, i::Integer) = x.dbn[i]
 Base.IndexStyle(::NullDistribution) = IndexLinear()
-(H0::NullDistribution{T})(x::T) where T<:Real = pvalue(H0, x)
+
+# p-values
+
+function pvalue(dbn::AbstractVector{<:Real}, instance::Real)
+    (sum(dbn .> instance) + 1) / (length(dbn) + 1)
+end
+
+"""
+    PValue([f::Function,] ŷ::AbstractArray, y::AbstractArray[, n=10_000])
+
+Calucluate a p-value for the probabilities `ŷ` against ground truths `y`.
+
+`f` is applied to `n` random permutations of `y`. If `f` is not supplied PR AUC is calculated.
+
+# Example
+
+```julia
+ŷ = rand(1000)
+y = rand(Bool, 1000)
+PValue(ŷ, y)
+```
+"""
+struct PValue{T<:Real}
+    p::T
+end
+
+function PValue(f::Function, ŷ::AbstractVector, y::AbstractVector, n=10_000)
+    PValue(NullDistribution(f, ŷ, y, n), f(ŷ, y))
+end
+
+function PValue(ŷ::AbstractVector, y::AbstractVector, n=10_000)
+    f(ŷ, y) = auc(PR(ŷ, y))
+    dbn = NullDistribution(f, ŷ, y, n)
+    instance = f(ŷ, y)
+    PValue(pvalue(dbn, instance))
+end
+
+PValue(dbn::NullDistribution, instance) = PValue(pvalue(dbn, instance))

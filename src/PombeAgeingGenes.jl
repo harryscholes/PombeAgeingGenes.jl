@@ -38,7 +38,10 @@ include("stats.jl")
 
 export
     snr,
-    coefvar
+    coefvar,
+    NullDistribution,
+    PValue,
+    pvalue
 
 include("ml.jl")
 
