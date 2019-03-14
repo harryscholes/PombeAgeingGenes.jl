@@ -3,16 +3,12 @@ const controls = ["wt", "SPBC29B5.01", "SPBC106.10", "SPBC1105.14", "SPAC1687.15
 
 # IO
 
-const _fname = "$(ENV["POMBAGEDB"])/Data/Jan2019_BBSRC_results"
+const _fname = ENV["POMBEAGEINGGENES"] * "/data/Jan2019_BBSRC_results"
 
-# Created by $POMBAGEDB/Scripts/growth_phenotypes/growth_phenotypes_2_preprocess.jl
-@file GrowthPhenotypes "$(_fname)_preprocess.csv"
-
-# Created by $POMBAGEDB/Scripts/growth_phenotypes/growth_phenotypes_3_remove_outliers.jl
-@file GrowthPhenotypesNoOutliers "$(_fname)_no_outliers.csv"
-
-# Created by $POMBAGEDB/Scripts/growth_phenotypes/growth_phenotypes_4_ml_file.jl
-@file GrowthPhenotypesWideform "$(_fname)_no_outliers_wideform.csv"
+# Created by $POMBEAGEINGGENES/scripts/growth_phenotypes/process.jl
+@file(GrowthPhenotypes, _fname * "_clean.csv")
+@file(GrowthPhenotypesNoOutliers, _fname * "_no_outliers.csv")
+@file(GrowthPhenotypesWideform, _fname * "_no_outliers_wideform.csv")
 
 for T = (GrowthPhenotypesFile, GrowthPhenotypesNoOutliersFile)
     @eval function load(x::$T)

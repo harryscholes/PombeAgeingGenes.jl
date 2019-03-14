@@ -32,12 +32,12 @@ function OBOParse.descendants(ontology::Ontology, term::AbstractString)
     map(x->x.id, descendants(ontology, ontology[term], GO_RELATIONSHIPS))
 end
 
-@file GO "$(ENV["POMBAGEDB"])/Data/go-basic.obo"
+@file(GO, ENV["POMBEAGEINGGENES"] * "/data/go-basic.obo")
 
 load(F::GOFile) = OBOParse.load(filepath(F), "GO")
 
 # Annotations
-@file GOAnnotations "$(ENV["POMBAGEDB"])/Data/gene_association.pombase"
+@file(GOAnnotations, ENV["POMBEAGEINGGENES"] * "/data/gene_association.pombase")
 
 struct Annotation
     id::String
@@ -94,7 +94,7 @@ function descendants2slim(s2d)
     d
 end
 
-@file GOSlimTargets "$(ENV["POMBAGEDB"])/Data/goslim_targets.csv"
+@file(GOSlimTargets, ENV["POMBEAGEINGGENES"] * "/data/goslim_targets.csv")
 
 function load(x::GOSlimTargetsFile)
     df = DataFrame(load(filepath(x)))
