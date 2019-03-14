@@ -516,6 +516,6 @@ function load(::MLFileCollection, T::Type=DataFrame;
 end
 
 # Gene network embeddings
-@file NetworkEmbeddings "$(ENV["POMBAGEDB"])/Data/network_embeddings/network_embeddings.csv"
+@file(NetworkEmbeddings, ENV["POMBEAGEINGGENES"] * "/data/network_embeddings/network_embeddings.csv")
 
 load(f::NetworkEmbeddingsFile) = DataFrame(load(filepath(f)))

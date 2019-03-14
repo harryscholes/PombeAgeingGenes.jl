@@ -3,16 +3,12 @@ const controls = ["wt", "SPBC29B5.01", "SPBC106.10", "SPBC1105.14", "SPAC1687.15
 
 # IO
 
-const _fname = "$(ENV["POMBAGEDB"])/Data/Jan2019_BBSRC_results"
+const _fname = ENV["POMBEAGEINGGENES"] * "/data/Jan2019_BBSRC_results"
 
-# Created by $POMBAGEDB/Scripts/growth_phenotypes/growth_phenotypes_2_preprocess.jl
-@file GrowthPhenotypes "$(_fname)_preprocess.csv"
-
-# Created by $POMBAGEDB/Scripts/growth_phenotypes/growth_phenotypes_3_remove_outliers.jl
-@file GrowthPhenotypesNoOutliers "$(_fname)_no_outliers.csv"
-
-# Created by $POMBAGEDB/Scripts/growth_phenotypes/growth_phenotypes_4_ml_file.jl
-@file GrowthPhenotypesWideform "$(_fname)_no_outliers_wideform.csv"
+# Created by $POMBEAGEINGGENES/scripts/growth_phenotypes/process.jl
+@file(GrowthPhenotypes, _fname * "_clean.csv")
+@file(GrowthPhenotypesNoOutliers, _fname * "_no_outliers.csv")
+@file(GrowthPhenotypesWideform, _fname * "_no_outliers_wideform.csv")
 
 for T = (GrowthPhenotypesFile, GrowthPhenotypesNoOutliersFile)
     @eval function load(x::$T)
@@ -29,7 +25,7 @@ load(x::GrowthPhenotypesWideformFile) = DataFrame(load(filepath(x)))
 
 Calculate mean sizes per strain-condition pair.
 
-If there are fewer than `nrepeats` repeats, the size is set to NaN. Sizes are rounded to
+If the number of repeasts is ≤ `nrepeats` then the size is set to NaN. Sizes are rounded to
 `digits` digits.
 """
 function meansizes(df::DataFrame; nrepeats::Int=2, digits::Int=2)
@@ -40,7 +36,7 @@ end
 """
     impute!(df)
 
-Impute NaNs with mean size per condition.
+Impute `NaN`s with mean size per condition.
 """
 function impute!(df::DataFrame)
     for g = groupby(df, :condition)

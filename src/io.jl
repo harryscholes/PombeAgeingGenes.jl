@@ -3,13 +3,7 @@
 
 A type representing a specific type of file to be loaded.
 
-Subtypes must be constructed using `@file F`
-
-```
-@file FooFile
-load(F::File{FooFile}) = ...
-const Foo = FooFile("path", "file")
-```
+Subtypes must be constructed using `@file(F, path)`.
 """
 abstract type AbstractFile end
 
@@ -22,11 +16,11 @@ Base.isfile(F::AbstractFile) = isfile(filepath(F))
 Base.open(F::AbstractFile) = open(filepath(F))
 
 """
-    @file F
+    @file(F, path)
 
 Creates a composite type `T` with the name `<F>File` and a constant `F`. Useful constructors and methods are also implemented.
 """
-macro file(F, args...)
+macro file(F, path)
     T = Symbol("$(F)File")
 
     esc(quote
@@ -34,6 +28,6 @@ macro file(F, args...)
             filepath::String
         end
 
-        const $F = ($T)(eval.($args)...)
+        const $F = ($T)(eval($path))
     end)
 end
