@@ -25,7 +25,7 @@ load(x::GrowthPhenotypesWideformFile) = DataFrame(load(filepath(x)))
 
 Calculate mean sizes per strain-condition pair.
 
-If there are fewer than `nrepeats` repeats, the size is set to NaN. Sizes are rounded to
+If the number of repeasts is ≤ `nrepeats` then the size is set to NaN. Sizes are rounded to
 `digits` digits.
 """
 function meansizes(df::DataFrame; nrepeats::Int=2, digits::Int=2)
@@ -36,7 +36,7 @@ end
 """
     impute!(df)
 
-Impute NaNs with mean size per condition.
+Impute `NaN`s with mean size per condition.
 """
 function impute!(df::DataFrame)
     for g = groupby(df, :condition)
