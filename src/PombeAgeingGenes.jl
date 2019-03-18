@@ -9,7 +9,8 @@ using
     Random,
     CSVFiles,
     MLDataUtils,
-    RecipesBase
+    RecipesBase,
+    JSON
 
 import FileIO: load
 import Base: precision
@@ -47,6 +48,8 @@ include("ml.jl")
 export
     stratifiedkfolds,
     @crossvalidate,
+    writecvresults,
+    loadcvresults,
     @gridsearch,
     tp,
     fn,

@@ -61,8 +61,21 @@ macro crossvalidate(args...)
             push!(ŷs, ŷ)
         end
 
-        Performance.(ŷs, ys), PR(vcat(ŷs...), vcat(ys...))
+        ŷs, ys, Performance.(ŷs, ys), PR(vcat(ŷs...), vcat(ys...))
     end)
+end
+
+function writecvresults(path::AbstractString, ŷs::AbstractArray, ys::AbstractArray; kwargs...)
+    d = Dict("ŷs" => ŷs, "ys" => ys, kwargs...)
+    write(path, JSON.json(d))
+    d
+end
+
+function loadcvresults(path::AbstractString)
+    d = JSON.parsefile(path)
+    d["ŷs"] = map(Array{Float64}, d["ŷs"])
+    d["ys"] = map(Array{Bool}, d["ys"])
+    d
 end
 
 # Stratified k-fold cross-validation
