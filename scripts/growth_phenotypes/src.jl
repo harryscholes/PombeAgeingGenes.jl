@@ -4,7 +4,7 @@ Code for processing growth phenotype data in `process.jl`.
 
 cd(@__DIR__)
 
-using PombeAgeingGenes, DataFrames, DataFramesMeta, JSON, CSVFiles
+using PombeAgeingGenes, DataFrames, DataFramesMeta, JSON, CSVFiles, GZip
 
 const fname = ENV["POMBEAGEINGGENES"] * "/data/Jan2019_BBSRC_results"
 
@@ -19,18 +19,20 @@ end
 write_ncolonies(key::String, df::DataFrame) = write_ncolonies(key, size(df,1))
 
 function extractcolumns()
-    open(fname * "_selected_columns.csv", "w") do io # out file
-        for line = eachline(fname * ".csv")
-            l = split(line, ',')
+    GZip.open(fname * ".csv.gz", "r") do input
+        open(fname * "_selected_columns.csv", "w") do output
+            for line = eachline(input)
+                l = split(line, ',')
 
-            replace!(l, "inf"=>"")
-            replace!(l, "emty"=>"empty")
+                replace!(l, "inf"=>"")
+                replace!(l, "emty"=>"empty")
 
-            for i = [2,3,4,5,8,9,10,13,14,15,16,22]
-                write(io, l[i], ",")
+                for i = [2,3,4,5,8,9,10,13,14,15,16,22]
+                    write(output, l[i], ",")
+                end
+
+                write(output, l[24], "\n")
             end
-
-            write(io, l[24], "\n")
         end
     end
 end
