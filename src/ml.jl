@@ -499,14 +499,16 @@ const ML = MLFileCollection()
 
 Load features and targets for machine learning as `DataFrame`.
 
-If `T` is `Matrix`, convert to matrices. Optionally load the gene network embeddings if
+If `T` is `Matrix`, convert to matrices. Optionally do not load the growth phenotypes if
+`growthphenotypes` is `false`. Optionally load the gene network embeddings if
 `networkembeddings` is `true`. Center the features if `center` is `true`.
 """
 function load(::MLFileCollection, T::Type=DataFrame;
+              growthphenotypes::Bool=true,
               networkembeddings::Bool=false,
               center::Bool=false)
     Xs = []
-    push!(Xs, load(GrowthPhenotypesWideform))
+    growthphenotypes && push!(Xs, load(GrowthPhenotypesWideform))
     networkembeddings && push!(Xs, load(NetworkEmbeddings))
     length(Xs) > 1 ? (X = join(Xs..., on=:id)) : (X = Xs[1])
     center && center!(X)
