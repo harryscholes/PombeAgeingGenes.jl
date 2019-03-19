@@ -1,3 +1,10 @@
+export clusteredheatmap
+
+using Distances, Clustering, LinearAlgebra, Plots, Plots.PlotMeasures
+
+import Clustering: nnodes
+import StatsPlots: treepositions
+
 @recipe function f(A::AbstractMatrix, hci::Hclust, hcj::Hclust)
     seriestype := :heatmap
     A[hci.order, hcj.order]

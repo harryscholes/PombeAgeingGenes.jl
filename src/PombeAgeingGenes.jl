@@ -10,11 +10,16 @@ using
     CSVFiles,
     MLDataUtils,
     RecipesBase,
-    JSON
+    JSON,
+    Requires
 
 import FileIO: load
 import Base: precision
 import MLDataUtils: default_obsdim
+
+function __init__()
+    @require Plots="91a5bcdd-55d7-5caf-9e0b-520d859cae80" include("plotting.jl")
+end
 
 include("utils.jl")
 
@@ -66,14 +71,6 @@ export
     auc,
     ML,
     NetworkEmbeddings
-
-# include("fisherlineardiscriminant.jl")
-#
-# export
-#     FisherLinearDiscriminant,
-#     evaluate,
-#     probability,
-#     predict
 
 include("growthphenotypes.jl")
 
