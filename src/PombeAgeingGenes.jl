@@ -93,14 +93,4 @@ export
     removerepeats!,
     removerepeats
 
-# using Distances, Clustering, LinearAlgebra, Plots, Plots.PlotMeasures
-#
-# import Clustering: nnodes
-# import StatsPlots: treepositions
-#
-# include("plotting.jl")
-#
-# export
-#     clusteredheatmap
-
 end # module
