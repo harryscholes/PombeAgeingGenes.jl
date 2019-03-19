@@ -191,7 +191,6 @@ macro validate(ex)
 end
 
 import Base: precision
-import HypothesisTests: FisherExactTest
 
 """
     accuracy(TP::Integer, FN::Integer, FP::Integer, TN::Integer)
@@ -298,10 +297,9 @@ precision(c::ConfusionMatrix) = precision(c.TP, c.FP)
 recall(c::ConfusionMatrix) = recall(c.TP, c.FN)
 f1(c::ConfusionMatrix) = f1(c.TP, c.FN, c.FP)
 mcc(c::ConfusionMatrix) = mcc(c...)
-FisherExactTest(c::ConfusionMatrix) = FisherExactTest(c...)
 
 # Metrics for `ŷ` and `y`
-for f = (:accuracy, :precision, :recall, :f1, :FisherExactTest, :mcc)
+for f = (:accuracy, :precision, :recall, :f1, :mcc)
     @eval ($f)(ŷ::AbstractArray, y::AbstractArray) = ($f)(ConfusionMatrix(ŷ, y))
 end
 
@@ -313,7 +311,6 @@ struct Performance
     recall::Float64
     f1::Float64
     mcc::Float64
-    # fisher::Float64
 end
 
 function Performance(ŷ::AbstractArray{Bool}, y::AbstractArray{Bool})
@@ -324,7 +321,6 @@ function Performance(ŷ::AbstractArray{Bool}, y::AbstractArray{Bool})
         recall(c),
         f1(c),
         mcc(c),
-        # pvalue(FisherExactTest(c)),
         )
 end
 function Performance(s::AbstractArray{T}, y::AbstractArray{<:Real}) where T<:Real
@@ -342,7 +338,7 @@ function Base.show(io::IO, p::Performance)
     end
 end
 
-for f = ("accuracy", "precision", "recall", "f1", "mcc", "fisher")
+for f = ("accuracy", "precision", "recall", "f1", "mcc")
     @eval $(Symbol(f))(p::Performance) = getfield(p, Symbol($f))
 end
 
