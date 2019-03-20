@@ -437,7 +437,15 @@ end
 
     @series begin
         seriestype := :line
-        label := "$(isnothing(label) ? "AUC" : label) = $(round(auc(pr), digits=3))"
+        if isnothing(label)
+            label := "AUC = $(round(auc(pr), digits=3))"
+        elseif label == ""
+            label := label
+        elseif label isa AbstractString
+            label := "$label = $(round(auc(pr), digits=3))"
+        else
+            label := label
+        end
         recall(pr), precision(pr)
     end
 
