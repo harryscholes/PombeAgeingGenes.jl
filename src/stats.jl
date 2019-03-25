@@ -81,7 +81,7 @@ function PValue(instance, null::NullDistribution;
 end
 
 function PValue(instance::T, null::AbstractVector{T};
-                alternative::AlternativeHypothesis=Greater()))
+                alternative::AlternativeHypothesis=Greater()) where T<:Real
     PValue(instance, NullDistribution(null); alternative=alternative)
 end
 
