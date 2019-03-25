@@ -514,6 +514,7 @@ If `T` is `Matrix`, convert to matrices. Optionally do not load the growth pheno
 function load(::MLFileCollection, T::Type=DataFrame;
               growthphenotypes::Bool=true,
               networkembeddings::Bool=false,
+              Y=:goslim,
               center::Bool=false)
     Xs = []
     growthphenotypes && push!(Xs, load(GrowthPhenotypesWideform))
@@ -521,7 +522,8 @@ function load(::MLFileCollection, T::Type=DataFrame;
     length(Xs) > 1 ? (X = join(Xs..., on=:id)) : (X = Xs[1])
     center && center!(X)
 
-    Y = load(GeneOntology.GOSlimTargets)
+    Y == :goslim && (Y = load(GeneOntology.GOSlimTargets))
+    Y == :kegg && (Y = load(KEGGPathwayTargets))
 
     commonids = sort(X[:id] ∩ Y[:id])
     X = sort!(X[map(id->id ∈ commonids, X[:id]), :], :id)

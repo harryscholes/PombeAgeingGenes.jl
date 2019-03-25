@@ -93,4 +93,13 @@ export
     removerepeats!,
     removerepeats
 
+include("kegg.jl")
+
+export
+    KEGGPathways,
+    KEGGPATHWAYS,
+    KEGGPathway,
+    @kegg_str,
+    KEGGPathwayTargets
+
 end # module
