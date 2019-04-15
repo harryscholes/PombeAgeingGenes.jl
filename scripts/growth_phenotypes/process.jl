@@ -121,12 +121,33 @@ deleterows!(df, map(x->x ∈ conditions_to_delete, df[:condition]))
 # Impute NaNs with mean size per condition
 impute!(df)
 
+# For each strain, normalise the treatments to the control media (YES_32 or EMM_32)
+function controlmeans(df, media)
+    x = by(@where(df, :condition .== media), :id, size = :size => mean)
+    Dict(zip(x[:id], x[:size]))
+end
+
+const CONTROL_YES = controlmeans(df, "YES_32")
+const CONTROL_EMM = controlmeans(df, "EMM_32")
+
+df[:size] = allowmissing(df[:size])
+
+for r = eachrow(df)
+    d = startswith(r.condition, "YES") ? CONTROL_YES : CONTROL_EMM
+    r.size = haskey(d, r.id) ? r.size / d[r.id] : missing
+end
+
 # Wideform
 df = unstack(df, :id, :condition, :size)
+deletecols!(df, :YES_32)
+deletecols!(df, :EMM_32)
 
 # Coalesce missings
 for col = names(df)[2:end]
-    df[col] = coalesce.(df[col], 0.)
+    df[col] = clamp.(coalesce.(df[col], 0.), 0, 2)
 end
+
+# Remove rows that are all zero
+deleterows!(df, map(r->all(iszero.(r)), eachrow(df[2:end])))
 
 save(fname * "_no_outliers_wideform.csv", df)
