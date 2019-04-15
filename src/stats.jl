@@ -69,8 +69,8 @@ struct PValue{T<:Real}
     p::T
 end
 
-function PValue(instance, null::NullDistribution;
-                alternative::AlternativeHypothesis=Greater())
+function PValue(instance::T, null::NullDistribution{T};
+                alternative::AlternativeHypothesis=Greater()) where T<:Real
     n = length(null)
     moreextreme = if alternative isa Greater
         _pvalue_greater(instance, null, n)
