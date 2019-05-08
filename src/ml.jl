@@ -514,12 +514,20 @@ If `T` is `Matrix`, convert to matrices. Optionally do not load the growth pheno
 function load(::MLFileCollection, T::Type=DataFrame;
               growthphenotypes::Bool=true,
               networkembeddings::Bool=false,
+              funfam::Union{Bool,AbstractString}=false,
               Y=:goslim,
               center::Bool=false)
     Xs = []
     growthphenotypes && push!(Xs, load(GrowthPhenotypesWideform))
     networkembeddings && push!(Xs, load(NetworkEmbeddings))
     length(Xs) > 1 ? (X = join(Xs..., on=:id)) : (X = Xs[1])
+    if funfam isa AbstractString
+        hits = load(FunFamHits, funfam)
+        X = join(X, hits, on=:id, kind=:left)
+        for col = names(X)
+            X[col] = coalesce.(X[col], 0.)
+        end
+    end
     center && center!(X)
 
     Y == :goslim && (Y = load(GeneOntology.GOSlimTargets))
