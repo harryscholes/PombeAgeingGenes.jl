@@ -518,20 +518,44 @@ function load(::MLFileCollection, T::Type=DataFrame;
               Y=:goslim,
               center::Bool=false)
     Xs = []
-    growthphenotypes && push!(Xs, load(GrowthPhenotypesWideform))
-    networkembeddings && push!(Xs, load(NetworkEmbeddings))
-    length(Xs) > 1 ? (X = join(Xs..., on=:id)) : (X = Xs[1])
+
+    if growthphenotypes
+        push!(Xs, load(GrowthPhenotypesWideform))
+    end
+
+    if networkembeddings
+        push!(Xs, load(NetworkEmbeddings))
+    end
+
+    if length(Xs) > 1
+        X = join(Xs..., on=:id)
+    elseif length(Xs) == 1
+        X = Xs[1]
+    else
+        X = nothing
+    end
+
     if funfam isa AbstractString
         hits = load(FunFamHits, funfam)
-        X = join(X, hits, on=:id, kind=:left)
+
+        if isnothing(X)
+            X = hits
+        else
+            X = join(X, hits, on=:id, kind=:left)
+        end
+
         for col = names(X)
             X[col] = coalesce.(X[col], 0.)
         end
     end
+
     center && center!(X)
 
-    Y == :goslim && (Y = load(GeneOntology.GOSlimTargets))
-    Y == :kegg && (Y = load(KEGGPathwayTargets))
+    if Y == :goslim
+        Y = load(GeneOntology.GOSlimTargets)
+    elseif Y == :kegg
+        Y = load(KEGGPathwayTargets)
+    end
 
     commonids = sort(X[:id] ∩ Y[:id])
     X = sort!(X[map(id->id ∈ commonids, X[:id]), :], :id)
