@@ -6,6 +6,7 @@ end
 
 @file FunFamHits joinpath(ENV["POMBEAGEINGGENES"], "data", "funfam", "peptide.domtblout")
 
+"""Load all FunFam hits."""
 function load(x::FunFamHitsFile; threshold::AbstractFloat=0.001)
     hits = FunFamHit[]
     open(filepath(x), "r") do io
@@ -22,6 +23,7 @@ function load(x::FunFamHitsFile; threshold::AbstractFloat=0.001)
     df = finalize(hits)
 end
 
+"""Load FunFam hits from a set of FunFams."""
 function load(x::FunFamHitsFile, ffs::Union{AbstractVector,AbstractSet};
               threshold::AbstractFloat=0.001)
     ffs = Set(ffs)
@@ -43,6 +45,7 @@ function load(x::FunFamHitsFile, ffs::Union{AbstractVector,AbstractSet};
     df = finalize(hits)
 end
 
+"""Load FunFam hits for all FunFams that have proteins annotated with a GO term."""
 function load(x::FunFamHitsFile, goterm::AbstractString; threshold::AbstractFloat=0.001)
     ffs = vec(readdlm(joinpath(ENV["POMBEAGEINGGENES"], "data", "funfam",
         "funfams_with_goterms", goterm*".csv"), String))
