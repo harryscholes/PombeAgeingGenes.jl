@@ -536,7 +536,7 @@ function load(::MLFileCollection, T::Type=DataFrame;
     end
 
     if funfam isa AbstractString
-        hits = load(FunFamHits, funfam)
+        hits = convert(DataFrame, load(FunFamHits, funfam))
 
         if isnothing(X)
             X = hits
