@@ -11,7 +11,8 @@ using
     MLDataUtils,
     RecipesBase,
     JSON,
-    Requires
+    Requires,
+    DelimitedFiles
 
 import FileIO: load
 import Base: precision
@@ -103,5 +104,10 @@ export
     KEGGPathway,
     @kegg_str,
     KEGGPathwayTargets
+
+include("funfam.jl")
+
+export
+    FunFamHits
 
 end # module

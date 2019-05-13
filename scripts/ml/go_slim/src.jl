@@ -1,4 +1,4 @@
-using PombeAgeingGenes, Distributed, DecisionTree, JSON, Plots
+using PombeAgeingGenes, Distributed, DecisionTree, JSON, Plots, Random
 
 using Distributed, DecisionTree
 
@@ -34,6 +34,7 @@ function cvgoslim(X, Y, goterms, i)
     @show goterm
     fname = "$dir/$(goterm)"
     y = [i == 1 for i = Y[i,:]]
+    Random.seed!(i)
     ŷs, ys, p, pr = cv(X, y, grid)
     savefig(plot(pr, legend=:topright), fname * ".pdf")
     writecvresults(fname * ".json", ŷs, ys)
