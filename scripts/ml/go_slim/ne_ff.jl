@@ -6,8 +6,7 @@ Predict GO Slim terms using:
 
 include("src.jl")
 
-dir = "$(ENV["POMBEAGEINGGENES"])/Scripts/ml/go_slim/RandomForestClassifier/ne_ff"
-isdir(dir) || mkpath(dir)
+dir = setupdir("ne_ff")
 
 X, Y, goterms = load(ML, Matrix, growthphenotypes=false, networkembeddings=true)
 
@@ -16,20 +15,24 @@ const grid = Dict(
     :partial_sampling => [.5, .75, 1.],
     )
 
-function cvgoslim(X, Y, goterms)
+function cvgoterms(X, Y, goterms; dir, runnumber=0)
     for i = 1:size(Y,1)
-        goterm = goterms[i]
+        goterm = string(goterms[i])
+        @show goterm
         try
-            X, Y, goterms = load(ML, Matrix, growthphenotypes=false, networkembeddings=true,
-                funfam=string(goterm))
+            X, Y, goterms = load(ML, Matrix, growthphenotypes=false,
+                                 networkembeddings=true, funfam=goterm)
         # An ArgumentError is thrown when the funfams_with_goterms file is empty and no
         # FunFams have proteins with a particular GO term.
         catch ArgumentError
             println("No FunFams have GO term $goterm")
             continue
         end
-        cvgoslim(X, Y, goterms, i)
+        y = [j == 1 for j = Y[i,:]]
+        Random.seed!(runnumber+i)
+        cvgoterm(X, y, goterm; dir=dir)
     end
 end
 
-cvgoslim(X, Y, goterms)
+cvgoterms(X, Y, goterms; dir=dir)
+repeats(5; dir=dir)

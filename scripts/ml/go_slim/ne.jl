@@ -5,8 +5,7 @@ Predict GO Slim terms using:
 
 include("src.jl")
 
-dir = "$(ENV["POMBEAGEINGGENES"])/Scripts/ml/go_slim/RandomForestClassifier/ne"
-isdir(dir) || mkpath(dir)
+dir = setupdir("ne")
 
 X, Y, goterms = load(ML, Matrix, growthphenotypes=false, networkembeddings=true)
 
@@ -15,4 +14,5 @@ const grid = Dict(
     :partial_sampling => [.5, .75, 1.],
     )
 
-cvgoslim(X, Y, goterms)
+cvgoterms(X, Y, goterms; dir=dir)
+repeats(5; dir=dir)
