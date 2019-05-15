@@ -17,7 +17,8 @@ function setupdir(features)
 end
 
 function rfc(Xtrain, ytrain, Xtest; kwargs...)
-    model = DecisionTree.fit!(RandomForestClassifier(; n_trees=100, kwargs...), Xtrain, ytrain)
+    model = DecisionTree.fit!(RandomForestClassifier(; n_trees=500, kwargs...),
+                              Xtrain, ytrain)
     ŷ = DecisionTree.predict_proba(model, Xtest)[:,2]
 end
 
