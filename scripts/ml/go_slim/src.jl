@@ -48,9 +48,11 @@ function cvgoterm(X, y, goterm; dir)
     writecvresults(fname*".json", ŷs, ys)
 end
 
-repeats(nrepeats::Integer; dir::AbstractString) = repeats(1, nrepeats; dir=dir)
+function repeats(X, Y, goterms, nrepeats::Integer; dir::AbstractString)
+    repeats(X, Y, goterms, 1, nrepeats; dir=dir)
+end
 
-function repeats(start::Integer, stop::Integer; dir::AbstractString)
+function repeats(X, Y, goterms, start::Integer, stop::Integer; dir::AbstractString)
     for i = start:stop
         dir_i = joinpath(dir, string(i))
         isdir(dir_i) || mkpath(dir_i)

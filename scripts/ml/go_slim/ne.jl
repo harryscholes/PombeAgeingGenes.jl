@@ -15,4 +15,4 @@ const grid = Dict(
     )
 
 cvgoterms(X, Y, goterms; dir=dir)
-repeats(5; dir=dir)
+repeats(X, Y, goterms, 5; dir=dir)

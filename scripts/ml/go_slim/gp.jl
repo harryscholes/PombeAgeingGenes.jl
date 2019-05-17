@@ -16,3 +16,4 @@ const grid = Dict(
     )
 
 cvgoslim(X, Y, goterms)
+repeats(X, Y, goterms, 5; dir=dir)
