@@ -4,7 +4,7 @@ Code for processing growth phenotype data in `process.jl`.
 
 cd(@__DIR__)
 
-using PombeAgeingGenes, DataFrames, DataFramesMeta, JSON, CSVFiles, GZip
+using PombeAgeingGenes, DataFrames, DataFramesMeta, JSON, CSVFiles, GZip, Statistics
 
 const fname = ENV["POMBEAGEINGGENES"] * "/data/Jan2019_BBSRC_results"
 

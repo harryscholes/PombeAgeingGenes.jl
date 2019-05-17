@@ -9,19 +9,19 @@ include("src.jl")
 #######################################
 
 # Columns:
-#     2 Column
-#     3 Row
-#     4 colony_size
-#     5 Colony_circularity
-#     8 reference_surface
-#     9 Colony_size_corr
-#     10 Scan_date
-#     13 condition
-#     14 library_version
-#     15 repeat_number
-#     16 comments
-#     22 ID
-#     24 Assay_plate
+# 2 Column
+# 3 Row
+# 4 colony_size
+# 5 Colony_circularity
+# 8 reference_surface
+# 9 Colony_size_corr
+# 10 Scan_date
+# 13 condition
+# 14 library_version
+# 15 repeat_number
+# 16 comments
+# 22 ID
+# 24 Assay_plate
 
 extractcolumns()
 
@@ -53,6 +53,7 @@ begin
     df[(df[:condition] .== "YES_Xilose_2_percent_0.1_glucose") .&
        (ismissing.(df[:repeat_number])), :repeat_number] = 1.
 
+    dropmissing!(df, :size)
     df[:size] = round.(df[:size], digits=2)
 
     # Rename incorrectly named plates
@@ -68,7 +69,8 @@ begin
 
     write_ncolonies("Remove grid and empty", df)
 
-    dropmissing!(df, [:size, :colony_size, :reference_surface, :colony_circularity], disallowmissing=true)
+    dropmissing!(df, [:size, :colony_size, :reference_surface, :colony_circularity],
+                 disallowmissing=true)
 
     df = @where(df, :colony_size .> 0,
                     :size .> 0,
@@ -80,7 +82,9 @@ end
 
 dropmissing!(df, disallowmissing=true)
 
-df = @select(df, :condition, :id, :size, :colony_size, :column, :row, :assay_plate, :scan_date, :repeat_number, :library_version, :reference_surface, :colony_circularity, :comments, :phlox)
+df = @select(df, :condition, :id, :size, :colony_size, :column, :row, :assay_plate,
+                 :scan_date, :repeat_number, :library_version, :reference_surface,
+                 :colony_circularity, :comments, :phlox)
 
 save(fname * "_clean.csv", df)
 
