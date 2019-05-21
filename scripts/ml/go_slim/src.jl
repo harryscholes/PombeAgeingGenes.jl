@@ -33,11 +33,15 @@ end
 
 function cvgoterms(X, Y, goterms; dir, runnumber=0)
     for i = 1:size(Y,1)
-        goterm = string(goterms[i])
-        @show goterm
-        y = [j == 1 for j = Y[i,:]]
-        Random.seed!(runnumber+i)
-        cvgoterm(X, y, goterm; dir=dir)
+        try
+            goterm = string(goterms[i])
+            @show goterm
+            y = [j == 1 for j = Y[i,:]]
+            Random.seed!(runnumber+i)
+            cvgoterm(X, y, goterm; dir=dir)
+        catch ArgumentError
+            continue
+        end
     end
 end
 
