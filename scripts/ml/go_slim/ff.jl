@@ -1,13 +1,13 @@
 #=
 Predict GO Slim terms using:
-    - network embeddings
+    - All FunFams
 =#
 
 include("src.jl")
 
-dir = setupdir("ne")
+dir = setupdir("ff")
 
-X, Y, goterms = load(ML, Matrix, growthphenotypes=false, networkembeddings=true)
+X, Y, goterms = load(ML, Matrix, growthphenotypes=false, funfam=true)
 
 const grid = Dict(
     :n_subfeatures => [floor(sqrt(size(X,1))), 10, 25, 50],

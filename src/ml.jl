@@ -535,8 +535,12 @@ function load(::MLFileCollection, T::Type=DataFrame;
         X = nothing
     end
 
-    if funfam isa AbstractString
-        hits = convert(DataFrame, load(FunFamHits, funfam))
+    if funfam !== false
+        if funfam isa AbstractString
+            hits = convert(DataFrame, load(FunFamHits, funfam))
+        elseif funfam isa Bool
+            hits = convert(DataFrame, load(FunFamHits))
+        end
 
         if isnothing(X)
             X = hits
