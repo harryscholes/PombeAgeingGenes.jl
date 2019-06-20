@@ -150,7 +150,7 @@ save(fname * "_no_outliers.csv", df)
 df = load(GrowthPhenotypesNoOutliers)
 
 # Mean sizes. NB sizes for strain-condition pairs with ≤ `nrepeats` repeats are set to NaN
-df = meansizes(df; nrepeats=2)
+df = meansizes(df; nrepeats=1)
 
 # Remove columns with lots of NaNs
 df_nnan = by(df, :condition, nnan = :size => x->count(isnan.(x)))
