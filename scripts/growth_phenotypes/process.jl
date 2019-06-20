@@ -50,6 +50,41 @@ begin
 
     df[:condition] = map(x->replace(x, "_phlox"=>""), df[:condition])
 
+
+    for (old, new) = [
+        ("YES_0.005_MMS", "YES_MMS_0.005percent"),
+        ("YES_HU_10", "YES_HU_10mM"),
+        ("YES_TSA_500", "YES_TSA_500nM"),
+        ("EMM", "EMM_32"),
+        ("YES_tunicamycin_2", "YES_tunicamycin_2ul_in_100ml"),
+        ("YES_tunicamycin_1", "YES_tunicamycin_1ul_in_100ml"),
+        ("YES_tunicamycin_1ulin100ml", "YES_tunicamycin_1ul_in_100ml"),
+        ("YES_SDS_0.02percent", "YES_SDS_0.02_percent"),
+        ("YES_SDS_0.04percent", "YES_SDS_0.04_percent"),
+        ("YES_calcofluor_2ug", "YES_calcofluor_2ug_ml"),
+        ("YES_calcofluor_2ug_SDS_0.04percent", "YES_calcofluor_2ug_ml_SDS_0.04percent"),
+        ("YES_MMS_0.0075", "YES_MMS_0.0075percent"),
+        ("YES_NaCl_100mM_MMS_0.075", "YES_NaCl_100mM_MMS_0.075percent"),
+        ("YES_NaCl_100mM_SDS0.04percent", "YES_NaCl_100mM_SDS_0.04percent"),
+        ("YES_LiCl_4mM_MMS_0.0075", "YES_LiCl_4mM_MMS_0.0075percent"),
+        ("YES_0.1_percent_glucose", "YES_Glucose_0.1percent"),
+        ("YES_0.1_percent_glucose_10days", "YES_Glucose_0.1percent_10days"),
+        ("YES_0.5_percent_glucose", "YES_Glucose_0.5percent"),
+        ("YES_0.5_percent_glucose_10days", "YES_Glucose_0.5percent_10days"),
+        ("YES_1_percent_glucose", "YES_Glucose_1percent"),
+        ("YES_1_percent_glucose_10days", "YES_Glucose_1percent_10days"),
+        ("YES_3_percent_glucose_10days", "YES_Glucose_3percent_10days"),
+        ("YES_0.5mM_H2O2", "YES_H2O2_0.5mM"),
+        ("YES_1mM_H2O2", "YES_H2O2_1mM"),
+        ("YES_0.5mM_NaOrthovanadate", "YES_NaOrthovanadate_0.5mM"),
+        ("YES_2.5_percent_formamide", "YES_formamide_2.5percent"),
+        ("YES_KCl_0.5M_MMS_0.0075", "YES_KCl_0.5M_MMS_0.0075percent"),
+        ]
+        df[df[:condition] .== old, :condition] = new
+    end
+
+    df[:condition] = map(x->replace(x, "_percent"=>"percent"), df[:condition])
+
     df[(df[:condition] .== "YES_Xilose_2_percent_0.1_glucose") .&
        (ismissing.(df[:repeat_number])), :repeat_number] = 1.
 
@@ -97,7 +132,7 @@ df = load(GrowthPhenotypes)
 removeoutliers!(df)
 
 # These plates have more colonies than they should have
-df = df[.!((df[:condition] .== "YES_2.5_percent_formamide") .&
+df = df[.!((df[:condition] .== "YES_formamide_2.5percent") .&
            (df[:scan_date] .== 070618)),:]
 
 write_ncolonies("Remove outliers", df)
