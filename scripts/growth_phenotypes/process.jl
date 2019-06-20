@@ -153,9 +153,9 @@ df = load(GrowthPhenotypesNoOutliers)
 df = meansizes(df; nrepeats=1)
 
 # Remove columns with lots of NaNs
-df_nnan = by(df, :condition, nnan = :size => x->count(isnan.(x)))
-conditions_to_delete = @where(df_nnan, :nnan .> 3000)[:condition]
-deleterows!(df, map(x->x ∈ conditions_to_delete, df[:condition]))
+# df_nnan = by(df, :condition, nnan = :size => x->count(isnan.(x)))
+# conditions_to_delete = @where(df_nnan, :nnan .> 3000)[:condition]
+# deleterows!(df, map(x->x ∈ conditions_to_delete, df[:condition]))
 
 # Impute NaNs with mean size per condition
 impute!(df)
