@@ -12,7 +12,10 @@ const _fname = ENV["POMBEAGEINGGENES"] * "/data/Jan2019_BBSRC_results"
 
 for T = (GrowthPhenotypesFile, GrowthPhenotypesNoOutliersFile)
     @eval function load(x::$T)
-        categorical!(DataFrame(load(filepath(x), colparsers=Dict(:hash=>UInt64))))
+        df = DataFrame(load(filepath(x), colparsers=Dict(:hash=>UInt64)))
+        df[:phlox] = parse.(Bool, df[:phlox])
+        df
+        # categorical!(df)
     end
 end
 
