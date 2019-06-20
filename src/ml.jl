@@ -567,6 +567,9 @@ function load(::MLFileCollection, T::Type=DataFrame;
         Y = load(GeneOntology.GOSlimTargets)
     elseif Y == :kegg
         Y = load(KEGGPathwayTargets)
+    elseif Y == :ageing
+        ageing_genes = unique(vcat(values(GeneOntology.AGEING_FYPO_TERMS)...))
+        Y = DataFrame(id=X[:id], ageing=[x in ageing_genes for x = X[:id]])
     end
 
     commonids = sort(X[:id] ∩ Y[:id])
