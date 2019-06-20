@@ -524,7 +524,15 @@ function load(::MLFileCollection, T::Type=DataFrame;
     end
 
     if networkembeddings
-        push!(Xs, load(NetworkEmbeddings))
+        df = load(NetworkEmbeddings)
+
+        for col = names(df[2:end])
+            if all(df[col] .== 0)
+                deletecols!(df, col)
+            end
+        end
+
+        push!(Xs, df)
     end
 
     if length(Xs) > 1
