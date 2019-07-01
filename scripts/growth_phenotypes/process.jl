@@ -188,4 +188,9 @@ end
 # Remove rows that are all zero
 deleterows!(df, map(r->all(iszero.(r)), eachrow(df[2:end])))
 
+# log2 sizes
+for col = names(df)[2:end]
+    df[col] = log2.(df[col] .+ 10^-3)
+end
+
 save(fname * "_no_outliers_wideform.csv", df)
