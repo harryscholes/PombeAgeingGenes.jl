@@ -79,6 +79,14 @@ begin
         ("YES_0.5mM_NaOrthovanadate", "YES_NaOrthovanadate_0.5mM"),
         ("YES_2.5_percent_formamide", "YES_formamide_2.5percent"),
         ("YES_KCl_0.5M_MMS_0.0075", "YES_KCl_0.5M_MMS_0.0075percent"),
+        ("YES_Galactose_0.1_glucose", "YES_Galactose_0.1percent_glucose"),
+        ("YES_Glycerol_Galactose_0.1_glucose", "YES_Glycerol_Galactose_0.1percent_glucose"),
+        ("YES_Glycerol_MMS_0.0075", "YES_Glycerol_MMS_0.0075percent"),
+        ("YES_Glycerol_galactose_2percent_0.1_glucose", "YES_Glycerol_galactose_2percent_0.1percent_glucose"),
+        ("YES_benzamidine_10", "YES_benzamidine_10mM"),
+        ("YES_glucose_0.1percent", "YES_Glucose_0.1percent"),
+        ("YES_tea_tree_0.25", "YES_tea_tree_0.25ul_per_ml"),
+        ("YES_tea_tree_0.5", "YES_tea_tree_0.5ul_per_ml"),
         ]
         df[df[:condition] .== old, :condition] = new
     end
