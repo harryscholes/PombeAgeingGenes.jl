@@ -33,7 +33,7 @@ If the number of repeasts is ≤ `nrepeats` then the size is set to NaN. Sizes a
 """
 function meansizes(df::DataFrame; nrepeats::Int=2, digits::Int=2)
     by(df, [:id, :condition],
-        size = :size => x->length(x) ≤ nrepeats ? NaN : round(mean(x), digits=digits))
+        size = :size => x->length(x) ≤ nrepeats ? missing : round(mean(x), digits=digits))
 end
 
 """
@@ -43,7 +43,7 @@ Impute `NaN`s with mean size per condition.
 """
 function impute!(df::DataFrame)
     for g = groupby(df, :condition)
-        g[isnan.(g[:size]), :size] = mean(filter(!isnan, g[:size]))
+        g[ismissing.(g[:size]), :size] = mean(skipmissing(g[:size]))
     end
     df
 end

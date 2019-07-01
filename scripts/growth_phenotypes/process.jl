@@ -145,9 +145,6 @@ df = df[.!((df[:condition] .== "YES_formamide_2.5percent") .&
 
 write_ncolonies("Remove outliers", df)
 
-# Clamp large values
-df[df[:size] .> 2, :size] = 2
-
 # Save
 save(fname * "_no_outliers.csv", df)
 
@@ -157,32 +154,26 @@ save(fname * "_no_outliers.csv", df)
 
 df = load(GrowthPhenotypesNoOutliers)
 
-# Mean sizes. NB sizes for strain-condition pairs with ≤ `nrepeats` repeats are set to NaN
+# Mean sizes. NB sizes for strain-condition pairs with ≤ `nrepeats` repeats are set to `missing`
 df = meansizes(df; nrepeats=1)
-
-# Remove columns with lots of NaNs
-# df_nnan = by(df, :condition, nnan = :size => x->count(isnan.(x)))
-# conditions_to_delete = @where(df_nnan, :nnan .> 3000)[:condition]
-# deleterows!(df, map(x->x ∈ conditions_to_delete, df[:condition]))
-
-# Impute NaNs with mean size per condition
-impute!(df)
 
 # For each strain, normalise the treatments to the control media (YES_32 or EMM_32)
 function controlmeans(df, media)
     x = by(@where(df, :condition .== media), :id, size = :size => mean)
+    dropmissing!(x, :size)
     Dict(zip(x[:id], x[:size]))
 end
 
 const CONTROL_YES = controlmeans(df, "YES_32")
 const CONTROL_EMM = controlmeans(df, "EMM_32")
 
-df[:size] = allowmissing(df[:size])
-
 for r = eachrow(df)
     d = startswith(r.condition, "YES") ? CONTROL_YES : CONTROL_EMM
     r.size = haskey(d, r.id) ? r.size / d[r.id] : missing
 end
+
+# Impute `missing` values with mean size per condition
+impute!(df)
 
 # Wideform
 df = unstack(df, :id, :condition, :size)
@@ -191,7 +182,7 @@ deletecols!(df, :EMM_32)
 
 # Coalesce missings
 for col = names(df)[2:end]
-    df[col] = clamp.(coalesce.(df[col], 0.), 0, 2)
+    df[col] = coalesce.(df[col], 0.)
 end
 
 # Remove rows that are all zero
