@@ -193,4 +193,18 @@ for col = names(df)[2:end]
     df[col] = log2.(df[col] .+ 10^-3)
 end
 
+# Remove low variance conditions
+vars = map(i->var(df[i]), names(df)[2:end])
+histogram(vars)
+threshold = quantile(vars, 0.2)
+keep_conditions = names(df)[2:end][vars .> threshold]
+df = df[[:id; keep_conditions]]
+
+# Remove low variance strains
+vars = map(i->var(vec(Matrix(df[df[:id] .== i, 2:end]))), df[:id])
+histogram(vars)
+threshold = quantile(vars, 0.2)
+keep_ids = df[:id][vars .> threshold]
+df = @in(df, :id, keep_ids)
+
 save(fname * "_no_outliers_wideform.csv", df)
