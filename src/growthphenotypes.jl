@@ -150,3 +150,30 @@ end
 function removerepeats(df::DataFrame; nrepeats::Int)
     removerepeats!(deepcopy(df); nrepeats=nrepeats)
 end
+
+"""
+    trigitise(A; ratio)
+
+Encode log2 growth pheontype data as +1, 0 and -1 for resistant, no phenotype and sensitive
+strains, respectively.
+"""
+function trigitise(A::AbstractArray; ratio::AbstractFloat=0.2)
+    r = 1-ratio
+    l = log2(r)
+    u = log2(inv(r))
+    B = Array{Int}(undef, size(A)...)
+    B[A .< l] .= -1
+    B[A .> u] .= 1
+    B[l .≤ A .≤ u] .= 0
+    B
+end
+
+function trigitise(df::AbstractDataFrame; ratio::AbstractFloat=0.2)
+    for col = names(df)
+        if eltype(df[col]) <: Real
+            df[col] = trigitise(df[col]; ratio=ratio)
+        end
+    end
+
+    df
+end

@@ -97,7 +97,7 @@ begin
        (ismissing.(df[:repeat_number])), :repeat_number] = 1.
 
     dropmissing!(df, :size)
-    df[:size] = round.(df[:size], digits=2)
+    df[:size] = round.(df[:size], digits=3)
 
     # Rename incorrectly named plates
     correct_assay_plate("YES_MgCl2_200mM_SDS_0.4percent", "V.5.2.1", 2.2, "A", "B")
@@ -175,36 +175,57 @@ end
 # Impute `missing` values with mean size per condition
 impute!(df)
 
+df[:size] = log2.(df[:size])
+df[:size] = round.(df[:size], digits=3)
+
 # Wideform
 df = unstack(df, :id, :condition, :size)
 deletecols!(df, :YES_32)
 deletecols!(df, :EMM_32)
 
-# Coalesce missings
-for col = names(df)[2:end]
-    df[col] = coalesce.(df[col], 0.)
-end
-
-# Remove rows that are all zero
-deleterows!(df, map(r->all(iszero.(r)), eachrow(df[2:end])))
-
-# log2 sizes
-for col = names(df)[2:end]
-    df[col] = log2.(df[col] .+ 10^-3)
-end
-
 # Remove low variance conditions
-vars = map(i->var(df[i]), names(df)[2:end])
+vars = map(i->var(skipmissing(df[i])), names(df)[2:end])
 histogram(vars)
 threshold = quantile(vars, 0.2)
 keep_conditions = names(df)[2:end][vars .> threshold]
 df = df[[:id; keep_conditions]]
 
 # Remove low variance strains
-vars = map(i->var(vec(Matrix(df[df[:id] .== i, 2:end]))), df[:id])
+vars = map(i->var(skipmissing(vec(Matrix(df[df[:id] .== i, 2:end])))), df[:id])
 histogram(vars)
 threshold = quantile(vars, 0.2)
 keep_ids = df[:id][vars .> threshold]
 df = @in(df, :id, keep_ids)
+
+histogram(vec(Matrix(df[2:end])))
+
+impute_value = floor(minimum(skipmissing(vec(Matrix(df[2:end])))))
+
+# Coalesce missings
+for col = names(df)[2:end]
+    df[col] = coalesce.(df[col], impute_value)
+end
+
+# Remove rows that are all zero
+# deleterows!(df, map(r->all(iszero.(r)), eachrow(df[2:end])))
+
+# log2 sizes
+# for col = names(df)[2:end]
+#     df[col] = log2.(df[col] .+ 10^-3)
+# end
+
+# Remove low variance conditions
+# vars = map(i->var(df[i]), names(df)[2:end])
+# histogram(vars)
+# threshold = quantile(vars, 0.2)
+# keep_conditions = names(df)[2:end][vars .> threshold]
+# df = df[[:id; keep_conditions]]
+#
+# # Remove low variance strains
+# vars = map(i->var(vec(Matrix(df[df[:id] .== i, 2:end]))), df[:id])
+# histogram(vars)
+# threshold = quantile(vars, 0.2)
+# keep_ids = df[:id][vars .> threshold]
+# df = @in(df, :id, keep_ids)
 
 save(fname * "_no_outliers_wideform.csv", df)
