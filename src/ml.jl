@@ -65,8 +65,8 @@ macro crossvalidate(args...)
     end)
 end
 
-function writecvresults(path::AbstractString, ŷs::AbstractArray, ys::AbstractArray; kwargs...)
-    d = Dict("ŷs" => ŷs, "ys" => ys, kwargs...)
+function writecvresults(path::AbstractString, ŷs::AbstractArray, ys::AbstractArray, args...)
+    d = Dict("ŷs" => ŷs, "ys" => ys, args...)
     write(path, JSON.json(d))
     d
 end
