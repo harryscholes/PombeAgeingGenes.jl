@@ -82,6 +82,7 @@ export
     GrowthPhenotypes,
     GrowthPhenotypesNoOutliers,
     GrowthPhenotypesWideform,
+    GrowthPhenotypesTrigitised,
     meansizes,
     impute!,
     isoutlier,

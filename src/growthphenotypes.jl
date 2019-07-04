@@ -9,6 +9,7 @@ const _fname = ENV["POMBEAGEINGGENES"] * "/data/Jan2019_BBSRC_results"
 @file(GrowthPhenotypes, _fname * "_clean.csv")
 @file(GrowthPhenotypesNoOutliers, _fname * "_no_outliers.csv")
 @file(GrowthPhenotypesWideform, _fname * "_no_outliers_wideform.csv")
+@file(GrowthPhenotypesTrigitised, _fname * "_no_outliers_wideform_trigitised.csv")
 
 for T = (GrowthPhenotypesFile, GrowthPhenotypesNoOutliersFile)
     @eval function load(x::$T)
@@ -19,7 +20,11 @@ for T = (GrowthPhenotypesFile, GrowthPhenotypesNoOutliersFile)
     end
 end
 
-load(x::GrowthPhenotypesWideformFile) = DataFrame(load(filepath(x)))
+# load(x::GrowthPhenotypesWideformFile) = DataFrame(load(filepath(x)))
+
+for T = (GrowthPhenotypesWideformFile, GrowthPhenotypesTrigitisedFile)
+    @eval load(x::$T) = DataFrame(load(filepath(x)))
+end
 
 # Growth phenotypes processing
 

@@ -513,6 +513,7 @@ If `T` is `Matrix`, convert to matrices. Optionally do not load the growth pheno
 """
 function load(::MLFileCollection, T::Type=DataFrame;
               growthphenotypes::Bool=true,
+              trigitised::Bool=false,
               networkembeddings::Bool=false,
               funfam::Union{Bool,AbstractString}=false,
               Y=:goslim,
@@ -521,6 +522,8 @@ function load(::MLFileCollection, T::Type=DataFrame;
 
     if growthphenotypes
         push!(Xs, load(GrowthPhenotypesWideform))
+    elseif trigitised
+        push!(Xs, load(GrowthPhenotypesTrigitised))
     end
 
     if networkembeddings
