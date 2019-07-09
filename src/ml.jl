@@ -360,6 +360,16 @@ function DataFrames.DataFrame(ps::Vector{Performance})
     DataFrame(metrics=metrics, values=values)
 end
 
+# requires StatsPlots.jl
+@recipe function f(ps::AbstractVector{Performance})
+    seriestype := :boxplot
+    legend := false
+    c --> :grey80
+    fns = fieldnames(Performance)
+    xticks := (1:length(fns), string.(fns))
+    [getfield.(ps, fn) for fn = fns]
+end
+
 # precision-recall curves
 
 function precision_recall(s::AbstractVector{Float64},
