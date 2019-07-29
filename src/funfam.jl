@@ -48,8 +48,8 @@ function Base.convert(::Type{T}, hits::AbstractVector{FunFamHit}) where T<:Abstr
 
     for col = names(df)
         col == :id && continue
-        df[col] = -log10.(df[col])
-        df[col] = coalesce.(df[col], 0.)
+        df[!, col] = -log10.(df[:, col])
+        df[!, col] = coalesce.(df[:, col], 0.)
     end
 
     df

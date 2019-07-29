@@ -539,9 +539,10 @@ function load(::MLFileCollection, T::Type=DataFrame;
     if networkembeddings
         df = load(NetworkEmbeddings)
 
-        for col = names(df[2:end])
-            if all(df[col] .== 0)
-                deletecols!(df, col)
+        for col = names(df[:, Not(:id)])
+            if all(df[:, col] .== 0)
+                # deletecols!(df, col)
+                select!(df, Not(col))
             end
         end
 
@@ -582,12 +583,12 @@ function load(::MLFileCollection, T::Type=DataFrame;
         Y = load(KEGGPathwayTargets)
     elseif Y == :ageing
         ageing_genes = unique(vcat(values(GeneOntology.AGEING_FYPO_TERMS)...))
-        Y = DataFrame(id=X[:id], ageing=[x in ageing_genes for x = X[:id]])
+        Y = DataFrame(id=X[:, :id], ageing=[x in ageing_genes for x = X[:, :id]])
     end
 
-    commonids = sort(X[:id] ∩ Y[:id])
-    X = sort!(X[map(id->id ∈ commonids, X[:id]), :], :id)
-    Y = sort!(Y[map(id->id ∈ commonids, Y[:id]), :], :id)
+    commonids = sort(X[:, :id] ∩ Y[:, :id])
+    X = sort!(X[map(id->id ∈ commonids, X[:, :id]), :], :id)
+    Y = sort!(Y[map(id->id ∈ commonids, Y[:, :id]), :], :id)
 
     if T <: AbstractMatrix
         return permutedims.(convert.(T{Float64}, (X[2:end], Y[2:end])))..., names(Y)[2:end]
