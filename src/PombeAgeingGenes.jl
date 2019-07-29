@@ -96,7 +96,7 @@ export
     findrepeats,
     removerepeats!,
     removerepeats,
-    trigitise
+    trigitise!
 
 include("kegg.jl")
 

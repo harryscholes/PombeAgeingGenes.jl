@@ -14,9 +14,8 @@ const _fname = ENV["POMBEAGEINGGENES"] * "/data/Jan2019_BBSRC_results"
 for T = (GrowthPhenotypesFile, GrowthPhenotypesNoOutliersFile)
     @eval function load(x::$T)
         df = DataFrame(load(filepath(x), colparsers=Dict(:hash=>UInt64)))
-        df[:phlox] = parse.(Bool, df[:phlox])
-        df
-        # categorical!(df)
+        df[!, :phlox] = parse.(Bool, df[:, :phlox])
+        return df
     end
 end
 
@@ -37,7 +36,7 @@ If the number of repeasts is ≤ `nrepeats` then the size is set to NaN. Sizes a
 `digits` digits.
 """
 function meansizes(df::DataFrame; nrepeats::Int=2, digits::Int=2)
-    by(df, [:id, :condition],
+    return by(df, [:id, :condition],
         size = :size => x->length(x) ≤ nrepeats ? missing : round(mean(x), digits=digits))
 end
 
@@ -48,9 +47,9 @@ Impute `NaN`s with mean size per condition.
 """
 function impute!(df::DataFrame)
     for g = groupby(df, :condition)
-        g[ismissing.(g[:size]), :size] = mean(skipmissing(g[:size]))
+        g[ismissing.(g[:size]), :size] = mean(skipmissing(g[:, :size]))
     end
-    df
+    return df
 end
 
 # QC
@@ -69,7 +68,7 @@ function Fence(xs::AbstractVector; scale::Real=3)
     m = median(xs)
     mad = StatsBase.mad(xs, center=m, normalize=false)
     threshold = mad * scale
-    Fence(m - threshold, m + threshold)
+    return Fence(m - threshold, m + threshold)
 end
 
 isoutlier(F::Fence{T}, x::T) where T<:Real = !(F.low ≤ x ≤ F.high)
@@ -83,12 +82,12 @@ Add a column `:isoutlier` to the DataFrame `df` that identitfies whether a colon
 Outliers are defined as being MAD * `scale` larger/smaller than then median.
 """
 function findoutliers!(df::DataFrame; scale::Real=3)
-    df[:isoutlier] = false
+    df[!, :isoutlier] .= false
     for g = groupby(df, [:id, :condition])
-        f = Fence(g[:size]; scale=scale)
-        g[:isoutlier] = map(x->isoutlier(f, x), g[:size])
+        f = Fence(g[:, :size]; scale=scale)
+        g[:, :isoutlier] = map(x->isoutlier(f, x), g[:, :size])
     end
-    df
+    return df
 end
 findoutliers(df::DataFrame; scale::Real=3) = findoutliers!(deepcopy(df); scale=scale)
 
@@ -103,7 +102,7 @@ removes outliers if `keepoutliers` is false.
 """
 function outliers!(df::DataFrame; keepoutliers::Bool, scale::Real=3)
     findoutliers!(df)
-    deleterows!(df, df[:isoutlier] .!= keepoutliers)
+    deleterows!(df, df[:, :isoutlier] .!= keepoutliers)
     deletecols!(df, :isoutlier)
 end
 function outliers(df::DataFrame; keepoutliers::Bool, scale::Real=3)
@@ -132,11 +131,11 @@ Add a column `:nrepeats` to the DataFrame `df` containing the number of repeats 
 strain-condition pair.
 """
 function findrepeats!(df::DataFrame)
-    df[:nrepeats] = 0
+    df[!, :nrepeats] .= 0
     for g = groupby(df, [:id, :condition])
-        g[:nrepeats] = size(g, 1)
+        g[:, :nrepeats] .= size(g, 1)
     end
-    df
+    return df
 end
 
 findrepeats(df::DataFrame) = findrepeats!(deepcopy(df))
@@ -149,7 +148,7 @@ Remove condition-strain pairs from DataFrame `df` with `nrepeats` or fewer repea
 """
 function removerepeats!(df::DataFrame; nrepeats::Int)
     findrepeats!(df)
-    deleterows!(df, df[:nrepeats] .≤ nrepeats)
+    deleterows!(df, df[:, :nrepeats] .≤ nrepeats)
     deletecols!(df, :nrepeats)
 end
 function removerepeats(df::DataFrame; nrepeats::Int)
@@ -157,28 +156,26 @@ function removerepeats(df::DataFrame; nrepeats::Int)
 end
 
 """
-    trigitise(A; ratio)
+    trigitise!(A; ratio)
 
 Encode log2 growth pheontype data as +1, 0 and -1 for resistant, no phenotype and sensitive
 strains, respectively.
 """
-function trigitise(A::AbstractArray; ratio::AbstractFloat=0.2)
+function trigitise!(A::AbstractArray; ratio::AbstractFloat=0.2)
     r = 1-ratio
     l = log2(r)
     u = log2(inv(r))
-    B = Array{Int}(undef, size(A)...)
-    B[A .< l] .= -1
-    B[A .> u] .= 1
-    B[l .≤ A .≤ u] .= 0
-    B
+    A[A .< l] .= -1
+    A[A .> u] .= 1
+    A[l .≤ A .≤ u] .= 0
+    return A
 end
 
-function trigitise(df::AbstractDataFrame; ratio::AbstractFloat=0.2)
+function trigitise!(df::AbstractDataFrame; ratio::AbstractFloat=0.2)
     for col = names(df)
-        if eltype(df[col]) <: Real
-            df[col] = trigitise(df[col]; ratio=ratio)
+        if eltype(df[:, col]) <: Real
+            df[!, col] = trigitise!(df[:, col]; ratio=ratio)
         end
     end
-
-    df
+    return df
 end

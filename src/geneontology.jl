@@ -100,7 +100,7 @@ function load(x::GOSlimTargetsFile)
     df = DataFrame(load(filepath(x)))
 
     for col = names(df)
-        df[col] = coalesce.(df[col], 0)
+        df[!, col] = coalesce.(df[:, col], 0)
     end
 
     df
