@@ -6,13 +6,15 @@ S. pombe KEGG pathways
 
 function load(x::KEGGPathwaysFile)
     d = Dict{String,String}()
+
     open(filepath(x), "r") do io
         for line = eachline(io)
             line = split(line, '\t')
             d[line[1][6:end]] = line[2]
         end
     end
-    d
+
+    return d
 end
 
 const KEGGPATHWAYS = ["spo00010", "spo00020", "spo00030", "spo00040", "spo00051",

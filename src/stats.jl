@@ -90,11 +90,13 @@ _pvalue_less(instance, null, n) = _pvalue_alternative(instance, null, 1:n, <)
 
 function _pvalue_alternative(instance, null, iter, op)
     moreextreme = 1
+
     for i = length(null):-1:1
         if op(instance, null[i])
             break
         end
         moreextreme += 1
     end
-    moreextreme
+
+    return moreextreme
 end

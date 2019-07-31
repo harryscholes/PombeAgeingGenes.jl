@@ -22,7 +22,7 @@ function load(T::FunFamHitsFile; threshold::AbstractFloat=0.001)
         end
     end
 
-    hits
+    return hits
 end
 
 "Load FunFam hits from a set of FunFams."
@@ -30,14 +30,14 @@ function load(::FunFamHitsFile, ffs::Union{AbstractVector,AbstractSet};
               threshold::AbstractFloat=0.001)
     ffs = Set(ffs)
     hits = load(FunFamHits; threshold=threshold)
-    hits[map(x->x.ff in ffs, hits)]
+    return hits[map(x->x.ff in ffs, hits)]
 end
 
 "Load FunFam hits for all FunFams that have proteins annotated with a GO term."
 function load(x::FunFamHitsFile, goterm::AbstractString; threshold::AbstractFloat=0.001)
     ffs = vec(readdlm(joinpath(ENV["POMBEAGEINGGENES"], "data", "funfam",
         "funfams_with_goterms", goterm*".csv"), String))
-    load(FunFamHits, ffs; threshold=threshold)
+    return load(FunFamHits, ffs; threshold=threshold)
 end
 
 # Convert `AbstractVector{FunFamHit}` into a wideform DataFrame of ids × FunFams
@@ -52,5 +52,5 @@ function Base.convert(::Type{T}, hits::AbstractVector{FunFamHit}) where T<:Abstr
         df[!, col] = coalesce.(df[:, col], 0.)
     end
 
-    df
+    return df
 end

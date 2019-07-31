@@ -21,5 +21,5 @@ function counter(xs)
         haskey(d, x) ? d[x] += 1 : d[x] = 1
     end
 
-    d
+    return d
 end

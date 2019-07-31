@@ -68,14 +68,14 @@ end
 function writecvresults(path::AbstractString, ŷs::AbstractArray, ys::AbstractArray, args...)
     d = Dict("ŷs" => ŷs, "ys" => ys, args...)
     write(path, JSON.json(d))
-    d
+    return d
 end
 
 function loadcvresults(path::AbstractString)
     d = JSON.parsefile(path)
     d["ŷs"] = map(Array{Float64}, d["ŷs"])
     d["ys"] = map(Array{Bool}, d["ys"])
-    d
+    return d
 end
 
 # Stratified k-fold cross-validation
@@ -95,7 +95,7 @@ function stratifiedkfolds(f, data, k::Integer=5, obsdim=default_obsdim(data))
     end
 
     train_indices = map(t->setdiff(1:nobs(data; obsdim=obsdim), t), val_indices)
-    FoldsView(data_shuf, train_indices, val_indices, obsdim)
+    return FoldsView(data_shuf, train_indices, val_indices, obsdim)
 end
 
 function stratifiedkfolds(data, k::Integer=5, obsdim=default_obsdim(data))
@@ -173,7 +173,7 @@ for (f, gt, pr) = ((:tp,true,true), (:fn,true,false), (:fp,false,true), (:tn,fal
         """
         @inline function ($f)(ŷ::AbstractArray{Bool}, y::AbstractArray{Bool})
             ŷ = ŷ[:]; y = y[:]
-            count(x->x == $pr, ŷ[y .== $gt])
+            return count(x->x == $pr, ŷ[y .== $gt])
         end
     end
 end
@@ -357,7 +357,7 @@ function DataFrames.DataFrame(ps::Vector{Performance})
     metrics_values = f.(ps)
     metrics=string.(vcat(getindex.(metrics_values, 1)...))
     values=vcat(getindex.(metrics_values, 2)...)
-    DataFrame(metrics=metrics, values=values)
+    return DataFrame(metrics=metrics, values=values)
 end
 
 # requires StatsPlots.jl
@@ -410,7 +410,8 @@ function precision_recall(s::AbstractVector{Float64},
             pmax = p[i]
         end
     end
-    auc, p, r
+
+    return auc, p, r
 end
 
 """
@@ -594,7 +595,7 @@ function load(::MLFileCollection, T::Type=DataFrame;
         return permutedims.(convert.(T{Float64}, (X[2:end], Y[2:end])))..., names(Y)[2:end]
     end
 
-    X, Y
+    return X, Y
 end
 
 # Gene network embeddings

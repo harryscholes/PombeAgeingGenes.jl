@@ -63,7 +63,7 @@ function load(F::GOAnnotationsFile; ecs=EVIDENCE_CODES_TRUSTED)
         end
     end
 
-    annotations
+    return annotations
 end
 
 # Slim
@@ -88,10 +88,12 @@ Map GO terms to all GO Slim ancestor terms.
 """
 function descendants2slim(s2d)
     d = Dict{String,Set{String}}()
+
     for (k, vs) = s2d, v = vs
         haskey(d, v) ? push!(d[v], k) : (d[v] = Set([k]))
     end
-    d
+
+    return d
 end
 
 @file(GOSlimTargets, ENV["POMBEAGEINGGENES"] * "/data/goslim_targets.csv")
@@ -103,7 +105,7 @@ function load(x::GOSlimTargetsFile)
         df[!, col] = coalesce.(df[:, col], 0)
     end
 
-    df
+    return df
 end
 
 load(F::GOSlimTargetsFile, goterm::Symbol) = load(F)[[:id, goterm]]
