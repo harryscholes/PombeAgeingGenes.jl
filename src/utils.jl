@@ -10,7 +10,7 @@ df = DataFrame(A=1:10, B="a")
 """
 macro in(df, column, collection)
     esc(quote
-        $df[map(x->in(x, $collection), $df[$column]),:]
+        $df[map(x->in(x, $collection), $df[:,$column]),:]
     end)
 end
 

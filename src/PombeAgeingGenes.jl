@@ -12,7 +12,8 @@ using
     RecipesBase,
     JSON,
     Requires,
-    DelimitedFiles
+    DelimitedFiles,
+    CodecZlib
 
 import FileIO: load
 import Base: precision
@@ -82,7 +83,7 @@ export
     GrowthPhenotypes,
     GrowthPhenotypesNoOutliers,
     GrowthPhenotypesWideform,
-    GrowthPhenotypesTrigitised,
+    # GrowthPhenotypesTrigitised,
     meansizes,
     impute!,
     isoutlier,
@@ -110,6 +111,9 @@ export
 include("funfam.jl")
 
 export
-    FunFamHits
+    FunFamHits,
+    FunFamGOTerms,
+    FunFamGOTermsIEA,
+    FunFamInclusionThresholds
 
 end # module

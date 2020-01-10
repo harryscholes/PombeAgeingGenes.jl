@@ -1,8 +1,10 @@
 #=
-Process growth phenotype data.
+Process growth phenotype data for `Jan2019_BBSRC_results.csv`
 =#
 
 include("src.jl")
+
+fname = joinpath(ENV["POMBEAGEINGGENES"], "data", "Jan2019_BBSRC_results")
 
 #######################################
 # Extract relevent columns from the pyphe-slim output file
@@ -23,7 +25,22 @@ include("src.jl")
 # 22 ID
 # 24 Assay_plate
 
-extractcolumns()
+GZip.open(fname * ".csv.gz", "r") do input
+    open(fname * "_selected_columns.csv", "w") do output
+        for line = eachline(input)
+            l = split(line, ',')
+
+            replace!(l, "inf"=>"")
+            replace!(l, "emty"=>"empty")
+
+            for i = [2,3,4,5,8,9,10,13,14,15,16,22]
+                write(output, l[i], ",")
+            end
+
+            write(output, l[24], "\n")
+        end
+    end
+end
 
 #######################################
 # Cleaning
@@ -40,16 +57,14 @@ begin
     rename!(df, [i=>Symbol(lowercase(string(i))) for i = names(df)])
     rename!(df, :colony_size_corr=>:size)
 
-    df[df[:id] .== "bioneer_wt", :id] = "wt"
-    df[df[:id] .== "wildtype", :id] = "wt"
+    df[df[!,:id] .== "bioneer_wt", :id] .= "wt"
+    df[df[!,:id] .== "wildtype", :id] .= "wt"
 
-    df[df[:comments] .== "OK", :comments] = "ok"
-    df[df[:comments] .== "some_missing_bits", :comments] = "missing_some_bits"
+    df[df[!,:comments] .== "OK", :comments] = "ok"
+    df[df[!,:comments] .== "some_missing_bits", :comments] = "missing_some_bits"
 
-    df[:phlox] = occursin.("phlox", df[:condition])
-
-    df[:condition] = map(x->replace(x, "_phlox"=>""), df[:condition])
-
+    df[!,:phlox] = occursin.("phlox", df[!,:condition])
+    df[!,:condition] = map(x->replace(x, "_phlox"=>""), df[!,:condition])
 
     for (old, new) = [
         ("YES_0.005_MMS", "YES_MMS_0.005percent"),
@@ -88,16 +103,16 @@ begin
         ("YES_tea_tree_0.25", "YES_tea_tree_0.25ul_per_ml"),
         ("YES_tea_tree_0.5", "YES_tea_tree_0.5ul_per_ml"),
         ]
-        df[df[:condition] .== old, :condition] = new
+        df[df[!,:condition] .== old, :condition] = new
     end
 
-    df[:condition] = map(x->replace(x, "_percent"=>"percent"), df[:condition])
+    df[!,:condition] = map(x->replace(x, "_percent"=>"percent"), df[!,:condition])
 
-    df[(df[:condition] .== "YES_Xilose_2_percent_0.1_glucose") .&
-       (ismissing.(df[:repeat_number])), :repeat_number] = 1.
+    df[(df[!,:condition] .== "YES_Xilose_2_percent_0.1_glucose") .&
+       (ismissing.(df[!,:repeat_number])), :repeat_number] = 1.
 
     dropmissing!(df, :size)
-    df[:size] = round.(df[:size], digits=3)
+    df[!,:size] = round.(df[!,:size], digits=3)
 
     # Rename incorrectly named plates
     correct_assay_plate("YES_MgCl2_200mM_SDS_0.4percent", "V.5.2.1", 2.2, "A", "B")
@@ -140,8 +155,8 @@ df = load(GrowthPhenotypes)
 removeoutliers!(df)
 
 # These plates have more colonies than they should have
-df = df[.!((df[:condition] .== "YES_formamide_2.5percent") .&
-           (df[:scan_date] .== 070618)),:]
+df = df[.!((df[!,:condition] .== "YES_formamide_2.5percent") .&
+           (df[!,:scan_date] .== 070618)),:]
 
 write_ncolonies("Remove outliers", df)
 
@@ -157,11 +172,13 @@ df = load(GrowthPhenotypesNoOutliers)
 # Mean sizes. NB sizes for strain-condition pairs with ≤ `nrepeats` repeats are set to `missing`
 df = meansizes(df; nrepeats=1)
 
+# TEMP do not normalise for John Townsend
+#=
 # For each strain, normalise the treatments to the control media (YES_32 or EMM_32)
 function controlmeans(df, media)
     x = by(@where(df, :condition .== media), :id, size = :size => mean)
     dropmissing!(x, :size)
-    Dict(zip(x[:id], x[:size]))
+    Dict(zip(x[:,:id], x[:,:size]))
 end
 
 const CONTROL_YES = controlmeans(df, "YES_32")
@@ -171,37 +188,39 @@ for r = eachrow(df)
     d = startswith(r.condition, "YES") ? CONTROL_YES : CONTROL_EMM
     r.size = haskey(d, r.id) ? r.size / d[r.id] : missing
 end
+=#
 
 # Impute `missing` values with mean size per condition
 impute!(df)
 
-df[:size] = log2.(df[:size])
-df[:size] = round.(df[:size], digits=3)
+# TEMP do not log2 transform for John Townsend
+# df[!,:size] = log2.(df[!,:size])
+df[!,:size] = round.(df[!,:size], digits=3)
 
 # Wideform
 df = unstack(df, :id, :condition, :size)
-deletecols!(df, :YES_32)
-deletecols!(df, :EMM_32)
+select!(df, Not(:YES_32))
+select!(df, Not(:EMM_32))
 
 # Remove low variance conditions
-vars = map(i->var(skipmissing(df[i])), names(df)[2:end])
+vars = map(i->var(skipmissing(df[:,i])), names(df)[2:end])
 histogram(vars)
 threshold = quantile(vars, 0.2)
 keep_conditions = names(df)[2:end][vars .> threshold]
-df = df[[:id; keep_conditions]]
+df = df[:,[:id; keep_conditions]]
 
 # Remove low variance strains
-vars = map(i->var(skipmissing(vec(Matrix(df[df[:id] .== i, 2:end])))), df[:id])
+vars = map(i->var(skipmissing(vec(Matrix(df[df[!,:id] .== i, 2:end])))), df[!,:id])
 histogram(vars)
 threshold = quantile(vars, 0.2)
-keep_ids = df[:id][vars .> threshold]
+keep_ids = df[!,:id][vars .> threshold]
 df = @in(df, :id, keep_ids)
 
 # Coalesce missings
-impute_value = floor(minimum(skipmissing(vec(Matrix(df[2:end])))))
+impute_value = floor(minimum(skipmissing(vec(Matrix(df[!,2:end])))))
 
 for col = names(df)[2:end]
-    df[col] = coalesce.(df[col], impute_value)
+    df[!,col] = coalesce.(df[!,col], impute_value)
 end
 
 save(fname * "_no_outliers_wideform.csv", df)

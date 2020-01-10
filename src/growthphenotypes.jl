@@ -3,7 +3,12 @@ const controls = ["wt", "SPBC29B5.01", "SPBC106.10", "SPBC1105.14", "SPAC1687.15
 
 # IO
 
-const _fname = ENV["POMBEAGEINGGENES"] * "/data/Jan2019_BBSRC_results"
+#=
+Jan2019 growth phenotypes
+=#
+
+#=
+const _fname = joinpath(ENV["POMBEAGEINGGENES"], "data", "Jan2019_BBSRC_results")
 
 # Created by $POMBEAGEINGGENES/scripts/growth_phenotypes/process.jl
 @file(GrowthPhenotypes, _fname * "_clean.csv")
@@ -24,6 +29,28 @@ end
 for T = (GrowthPhenotypesWideformFile, GrowthPhenotypesTrigitisedFile)
     @eval load(x::$T) = DataFrame(load(filepath(x)))
 end
+=#
+
+#=
+Oct2019 growth phenotypes
+=#
+
+const _fname = joinpath(ENV["POMBEAGEINGGENES"], "data", "Oct2019_BBSRC_results")
+
+# Created by $POMBEAGEINGGENES/scripts/growth_phenotypes/process_2.jl
+@file(GrowthPhenotypes, _fname * "_clean.csv")
+@file(GrowthPhenotypesNoOutliers, _fname * "_normalised.csv")
+@file(GrowthPhenotypesWideform, _fname * "_wideform.csv")
+
+function load(x::GrowthPhenotypesFile)
+    df = DataFrame(load(filepath(x)))
+    df.phlox = parse.(Bool, df.phlox)
+    return df
+end
+
+for T = (GrowthPhenotypesNoOutliersFile, GrowthPhenotypesWideformFile)
+    @eval load(x::$T) = DataFrame(load(filepath(x)))
+end
 
 # Growth phenotypes processing
 
@@ -32,7 +59,7 @@ end
 
 Calculate mean sizes per strain-condition pair.
 
-If the number of repeasts is ≤ `nrepeats` then the size is set to NaN. Sizes are rounded to
+If the number of repeats is ≤ `nrepeats` then the size is set to `missing`. Sizes are rounded to
 `digits` digits.
 """
 function meansizes(df::DataFrame; nrepeats::Int=2, digits::Int=2)
@@ -47,7 +74,7 @@ Impute `NaN`s with mean size per condition.
 """
 function impute!(df::DataFrame)
     for g = groupby(df, :condition)
-        g[ismissing.(g[:size]), :size] = mean(skipmissing(g[:, :size]))
+        g[ismissing.(g[!,:size]), :size] .= mean(skipmissing(g[:, :size]))
     end
     return df
 end
@@ -84,7 +111,7 @@ Outliers are defined as being MAD * `scale` larger/smaller than then median.
 function findoutliers!(df::DataFrame; scale::Real=3)
     df[!, :isoutlier] .= false
     for g = groupby(df, [:id, :condition])
-        f = Fence(g[:, :size]; scale=scale)
+        f = Fence(g[!, :size]; scale=scale)
         g[:, :isoutlier] = map(x->isoutlier(f, x), g[:, :size])
     end
     return df
@@ -102,8 +129,8 @@ removes outliers if `keepoutliers` is false.
 """
 function outliers!(df::DataFrame; keepoutliers::Bool, scale::Real=3)
     findoutliers!(df)
-    deleterows!(df, df[:, :isoutlier] .!= keepoutliers)
-    deletecols!(df, :isoutlier)
+    deleterows!(df, df[!, :isoutlier] .!= keepoutliers)
+    select!(df, Not(:isoutlier))
 end
 function outliers(df::DataFrame; keepoutliers::Bool, scale::Real=3)
     outliers!(deepcopy(df); keepoutliers=keepoutliers, scale=scale)

@@ -24,7 +24,8 @@ const EVIDENCE_CODES = Dict(
    :experimental => ["EXP", "IDA", "IPI", "IMP", "IGI", "IEP"],
    :curated      => ["ISS", "ISO", "ISA", "ISM", "IGC", "IBA",
                      "IBD", "IKR", "IRD", "RCA", "TAS", "IC"],
-   :automatic    => ["IEA"])
+   :automatic    => ["IEA"],
+   :bad          => ["NAS", "ND", "TAS"])
 
 const EVIDENCE_CODES_TRUSTED = [EVIDENCE_CODES[:experimental]; EVIDENCE_CODES[:curated]]
 
