@@ -542,7 +542,6 @@ function load(::MLFileCollection, T::Type=DataFrame;
 
         for col = names(df[:, Not(:id)])
             if all(df[:, col] .== 0)
-                # deletecols!(df, col)
                 select!(df, Not(col))
             end
         end
@@ -572,7 +571,7 @@ function load(::MLFileCollection, T::Type=DataFrame;
         end
 
         for col = names(X)
-            X[col] = coalesce.(X[col], 0.)
+            X[!, col] = coalesce.(X[:, col], 0.)
         end
     end
 
@@ -592,13 +591,13 @@ function load(::MLFileCollection, T::Type=DataFrame;
     Y = sort!(Y[map(id->id ∈ commonids, Y[:, :id]), :], :id)
 
     if T <: AbstractMatrix
-        return permutedims.(convert.(T{Float64}, (X[2:end], Y[2:end])))..., names(Y)[2:end]
+        return permutedims.(convert.(T{Float64}, (X[:, 2:end], Y[:, 2:end])))..., names(Y)[2:end]
     end
 
     return X, Y
 end
 
 # Gene network embeddings
-@file(NetworkEmbeddings, ENV["POMBEAGEINGGENES"] * "/data/network_embeddings/network_embeddings.csv")
+@file(NetworkEmbeddings, ENV["POMBEAGEINGGENES"] * "/data/cafa4/network_embeddings.csv")
 
 load(f::NetworkEmbeddingsFile) = DataFrame(load(filepath(f)))

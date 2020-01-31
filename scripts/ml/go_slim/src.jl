@@ -1,13 +1,4 @@
-using PombeAgeingGenes, Distributed, DecisionTree, JSON, Plots, Random
-
-using Distributed, DecisionTree
-
-if haskey(ENV, "N_PROCS")
-    addprocs(parse(Int, ENV["N_PROCS"]))
-    println("nprocs() = ", nprocs())
-end
-
-@everywhere using DecisionTree
+using PombeAgeingGenes, DecisionTree, JSON, Plots, Random
 
 const N_TREES = haskey(ENV, "N_TREES") ? parse(Int, ENV["N_TREES"]) : 500
 
@@ -15,8 +6,7 @@ function setupdir(features)
     if haskey(ENV, "HOSTNAME") && occursin("myriad", ENV["HOSTNAME"])
         dir = features
     else
-        dir = joinpath(ENV["POMBEAGEINGGENES"], "Scripts", "ml", "go_slim",
-                       "RandomForestClassifier", features)
+        dir = joinpath(ENV["POMBEAGEINGGENES"], "cafa4", features)
     end
     isdir(dir) || mkpath(dir)
     dir

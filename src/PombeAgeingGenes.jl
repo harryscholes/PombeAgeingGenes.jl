@@ -13,7 +13,9 @@ using
     JSON,
     Requires,
     DelimitedFiles,
-    CodecZlib
+    CodecZlib,
+    DataStructures,
+    OBOParse
 
 import FileIO: load
 import Base: precision
