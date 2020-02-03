@@ -56,15 +56,16 @@ end
 
 "Load FunFam hits for all FunFams that have proteins annotated with a GO term."
 function load(x::FunFamHitsFile, goterm::AbstractString; threshold::AbstractFloat=0.0001)
+    hits = FunFamHit[]
     open(GzipDecompressorStream, joinpath(FUNFAM_DATA_DIR, "go2funfam.csv.gz")) do io
         for line in eachline(io)
             if startswith(line, goterm)
                 ffs = string.(split(split(line, limit=2)[2], ";"))
-                return load(FunFamHits, ffs; threshold=threshold)
+                hits = load(FunFamHits, ffs; threshold=threshold)
             end
         end
     end
-    return FunFamHit[]
+    return hits
 end
 
 function map_goterms_to_funfams()
