@@ -4,8 +4,13 @@ struct FunFamHit
     score::Float64
 end
 
-# @file FunFamHits joinpath(ENV["POMBEAGEINGGENES"], "data", "cafa4", "peptide.domtbl.gz")
-@file FunFamHits joinpath(ENV["POMBEAGEINGGENES"], "data", "cafa4", "peptide.cut_tc.domtbl.gz")
+# const CATH_VERSION = "4_2_0"
+const CATH_VERSION = "4_3_0"
+
+const FUNFAM_DATA_DIR = joinpath(ENV["POMBEAGEINGGENES"], "data", "funfam", "v"*CATH_VERSION)
+
+# @file FunFamHits joinpath(FUNFAM_DATA_DIR, "peptide.domtbl.gz")
+@file FunFamHits joinpath(FUNFAM_DATA_DIR, "peptide.cut_tc.domtbl.gz")
 
 
 "Load FunFam hits for which `f` evaluates to `true` and `score` < `threshold`."
@@ -51,10 +56,12 @@ end
 
 "Load FunFam hits for all FunFams that have proteins annotated with a GO term."
 function load(x::FunFamHitsFile, goterm::AbstractString; threshold::AbstractFloat=0.0001)
-    for line in eachline(joinpath(ENV["POMBEAGEINGGENES"], "data", "funfam", "go2funfam.csv"))
-        if startswith(line, goterm)
-            ffs = string.(split(split(line, limit=2)[2], ";"))
-            return load(FunFamHits, ffs; threshold=threshold)
+    open(GzipDecompressorStream, joinpath(FUNFAM_DATA_DIR, "go2funfam.csv.gz")) do io
+        for line in eachline(io)
+            if startswith(line, goterm)
+                ffs = string.(split(split(line, limit=2)[2], ";"))
+                return load(FunFamHits, ffs; threshold=threshold)
+            end
         end
     end
     return FunFamHit[]
@@ -62,9 +69,11 @@ end
 
 function map_goterms_to_funfams()
     d = DefaultDict{String, Vector{String}}([])
-    for line in eachline(joinpath(ENV["POMBEAGEINGGENES"], "data", "funfam", "go2funfam.csv"))
-        go, ffs = split(line, limit=2)
-        d[go] = split(ffs, ";")
+    open(GzipDecompressorStream, joinpath(FUNFAM_DATA_DIR, "go2funfam.csv.gz")) do io
+        for line in eachline(io)
+            go, ffs = split(line, limit=2)
+            d[go] = split(ffs, ";")
+        end
     end
     return d
 end
