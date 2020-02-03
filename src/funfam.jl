@@ -18,7 +18,7 @@ function load(f::Function, T::FunFamHitsFile; threshold::AbstractFloat=0.0001)
 
             # `f` is a function that is applied to each line in the `FunFamHitsFile`
             if f(l)
-                id = l[1][1:end-4]
+                id = replace(l[1], ":pep"=>"")
                 ff = l[4]
 
                 # independent E-value
