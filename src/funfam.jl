@@ -9,8 +9,8 @@ const CATH_VERSION = "4_3_0"
 
 const FUNFAM_DATA_DIR = joinpath(ENV["POMBEAGEINGGENES"], "data", "funfam", "v"*CATH_VERSION)
 
-# @file FunFamHits joinpath(FUNFAM_DATA_DIR, "peptide.domtbl.gz")
-@file FunFamHits joinpath(FUNFAM_DATA_DIR, "peptide.cut_tc.domtbl.gz")
+@file FunFamHits joinpath(FUNFAM_DATA_DIR, "peptide.domtbl.gz")
+# @file FunFamHits joinpath(FUNFAM_DATA_DIR, "peptide.cut_tc.domtbl.gz")
 
 const E_VALUE_THRESHOLD = 1e-6
 
