@@ -12,9 +12,10 @@ const FUNFAM_DATA_DIR = joinpath(ENV["POMBEAGEINGGENES"], "data", "funfam", "v"*
 # @file FunFamHits joinpath(FUNFAM_DATA_DIR, "peptide.domtbl.gz")
 @file FunFamHits joinpath(FUNFAM_DATA_DIR, "peptide.cut_tc.domtbl.gz")
 
+const E_VALUE_THRESHOLD = 1e-6
 
 "Load FunFam hits for which `f` evaluates to `true` and `score` < `threshold`."
-function load(f::Function, T::FunFamHitsFile; threshold::AbstractFloat=0.0001)
+function load(f::Function, T::FunFamHitsFile; threshold::AbstractFloat=E_VALUE_THRESHOLD)
     hits = FunFamHit[]
     open(GzipDecompressorStream, filepath(T)) do io
         for line = eachline(io)
@@ -42,20 +43,20 @@ function load(f::Function, T::FunFamHitsFile; threshold::AbstractFloat=0.0001)
 end
 
 "Load all FunFam hits."
-function load(T::FunFamHitsFile; threshold::AbstractFloat=0.0001)
+function load(T::FunFamHitsFile; threshold::AbstractFloat=E_VALUE_THRESHOLD)
     return load(l->true, T, threshold=threshold)
 end
 
 "Load FunFam hits from a set of FunFams."
 function load(T::FunFamHitsFile, ffs::Union{AbstractVector,AbstractSet};
-              threshold::AbstractFloat=0.0001)
+              threshold::AbstractFloat=E_VALUE_THRESHOLD)
     ffs = Set(ffs)
     # FunFam ID is in `l[4]`
     return load(l->l[4] in ffs, T, threshold=threshold)
 end
 
 "Load FunFam hits for all FunFams that have proteins annotated with a GO term."
-function load(x::FunFamHitsFile, goterm::AbstractString; threshold::AbstractFloat=0.0001)
+function load(x::FunFamHitsFile, goterm::AbstractString; threshold::AbstractFloat=E_VALUE_THRESHOLD)
     hits = FunFamHit[]
     open(GzipDecompressorStream, joinpath(FUNFAM_DATA_DIR, "go2funfam.csv.gz")) do io
         for line in eachline(io)
