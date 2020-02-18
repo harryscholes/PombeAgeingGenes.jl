@@ -12,7 +12,7 @@ const FUNFAM_DATA_DIR = joinpath(ENV["POMBEAGEINGGENES"], "data", "funfam", "v"*
 @file FunFamHits joinpath(FUNFAM_DATA_DIR, "peptide.domtbl.gz")
 # @file FunFamHits joinpath(FUNFAM_DATA_DIR, "peptide.cut_tc.domtbl.gz")
 
-const E_VALUE_THRESHOLD = 1e-6
+const E_VALUE_THRESHOLD = 1e-4
 
 "Load FunFam hits for which `f` evaluates to `true` and `score` < `threshold`."
 function load(f::Function, T::FunFamHitsFile; threshold::AbstractFloat=E_VALUE_THRESHOLD)
