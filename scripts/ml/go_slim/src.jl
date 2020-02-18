@@ -1,13 +1,4 @@
-using PombeAgeingGenes, Distributed, DecisionTree, JSON, Plots, Random
-
-using Distributed, DecisionTree
-
-if haskey(ENV, "N_PROCS")
-    addprocs(parse(Int, ENV["N_PROCS"]))
-    println("nprocs() = ", nprocs())
-end
-
-@everywhere using DecisionTree
+using PombeAgeingGenes, DecisionTree, JSON, Plots, Random
 
 const N_TREES = haskey(ENV, "N_TREES") ? parse(Int, ENV["N_TREES"]) : 500
 
