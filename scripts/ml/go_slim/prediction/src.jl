@@ -30,15 +30,24 @@ macro crossvalidatepredict(args...)
     end)
 end
 
-function cvpredictgoterms(; dir, runnumber=0)
-    goterms = string.(load(ML, Matrix, growthphenotypes=false, networkembeddings=true)[3])
+function cvpredictgoterms(; dir, runnumber=0, kwargs...)
+    goterms = string.(load(ML, Matrix;
+        growthphenotypes=true,
+        networkembeddings=true,
+        kwargs...
+        )[3])
 
     for (i, goterm) = enumerate(goterms)
         isfile(joinpath(dir, goterm*".json")) && continue # skip predictions that have already been made
 
         println("goterm = ", goterm)
 
-        X, Y = load(ML, growthphenotypes=false, networkembeddings=true, funfam=replace(goterm, "GO"=>"GO:"))
+        X, Y = load(ML;
+            growthphenotypes=true,
+            networkembeddings=true,
+            funfam=replace(goterm, "GO"=>"GO:"),
+            kwargs...
+            )
 
         ids = X[:,:id]
         X = permutedims(Matrix(X[:,2:end]))

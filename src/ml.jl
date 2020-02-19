@@ -528,11 +528,29 @@ function load(::MLFileCollection, T::Type=DataFrame;
               networkembeddings::Bool=false,
               funfam::Union{Bool,AbstractString}=false,
               Y=:goslim,
-              center::Bool=false)
+              center::Bool=false,
+              kwargs...
+              )
+    kwargs = Dict(kwargs)
+
     Xs = []
 
     if growthphenotypes
-        push!(Xs, load(GrowthPhenotypesWideform))
+        df = load(GrowthPhenotypesWideform)
+        M = Matrix(df[:,2:end])
+
+        if get(kwargs, :cor, false)
+            M = cor(M')
+        end
+
+        if get(kwargs, :cor2, false)
+            M = cor(M')
+            M = cor(M)
+        end
+
+        df2 = DataFrame(M)
+        df2.id = df.id
+        push!(Xs, df2)
     elseif trigitised
         push!(Xs, load(GrowthPhenotypesTrigitised))
     end
@@ -550,7 +568,7 @@ function load(::MLFileCollection, T::Type=DataFrame;
     end
 
     if length(Xs) > 1
-        X = join(Xs..., on=:id)
+        X = join(Xs..., on=:id, makeunique=true)
     elseif length(Xs) == 1
         X = Xs[1]
     else
@@ -591,7 +609,7 @@ function load(::MLFileCollection, T::Type=DataFrame;
     Y = sort!(Y[map(id->id ∈ commonids, Y[:, :id]), :], :id)
 
     if T <: AbstractMatrix
-        return permutedims.(convert.(T{Float64}, (X[:, 2:end], Y[:, 2:end])))..., names(Y)[2:end]
+        return permutedims.(convert.(T{Float64}, (X[:, Not(:id)], Y[:, Not(:id)])))..., filter!(x->x != :id, names(Y))
     end
 
     return X, Y
