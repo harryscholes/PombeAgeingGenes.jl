@@ -4,6 +4,8 @@ Process growth phenotype data for `Oct2019_BBSRC_results.csv`
 
 using PombeAgeingGenes, DataFrames, DataFramesMeta, JSON, CSVFiles, GZip, Statistics, Plots
 
+plotlyjs()
+
 include("src.jl")
 
 fname = joinpath(ENV["POMBEAGEINGGENES"], "data", "Oct2019_BBSRC_results")
@@ -116,7 +118,7 @@ end
 begin
     df = @where(df, :id .!= "grid", :id .!= "empty")
 
-    write_ncolonies("Remove grid and empty", df)
+    write_ncolonies("Remove 'grid' and 'empty'", df)
 
     dropmissing!(df, [:size, :colony_size, :reference_surface, :colony_circularity],
                  disallowmissing=true)
@@ -127,7 +129,7 @@ begin
                     #.9 .< :colony_circularity .< 1.5
                     )
 
-    write_ncolonies("Remove bad colonies", df)
+    write_ncolonies("Remove poor-quality colonies", df)
 end
 
 dropmissing!(df)
@@ -183,12 +185,6 @@ df = by(df, [:id, :condition]) do g
     x = xs[argmax(abs.(xs))]
     (size = round(x, digits=3),)
 end
-
-tmp = df.size
-
-tmp = tmp[-2 .< tmp .< 2]
-histogram(tmp, bins=1000)
-histogram(tmp, bins=1000, xlims=(-2,2))
 
 #=
 Wideform format for ML

@@ -8,7 +8,7 @@ include("src.jl")
 
 dir = setupdir("gp_ne")
 
-X, Y, goterms = load(ML, Matrix, networkembeddings=true)
+X, Y, goterms = load(ML, Matrix, growthphenotypes=true, networkembeddings=true)
 
 const grid = Dict(
     :n_subfeatures => [floor(sqrt(size(X,1))), 10, 25, 50],
