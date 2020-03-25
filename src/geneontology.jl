@@ -3,6 +3,7 @@ module GeneOntology
 export
     RELATIONSHIPS,
     EVIDENCE_CODES,
+    EVIDENCE_CODES_ALL,
     EVIDENCE_CODES_TRUSTED,
     GO,
     GOAnnotations,
@@ -21,12 +22,15 @@ const GO_RELATIONSHIPS = [:part_of, :is_a, :regulates, :positively_regulates,
    :negatively_regulates]
 
 const EVIDENCE_CODES = Dict(
-   :experimental => ["EXP", "IDA", "IPI", "IMP", "IGI", "IEP"],
+   :experimental => ["EXP", "IDA", "IPI", "IMP", "IGI", "IEP",
+                     "HTP", "HDA", "HMP", "HGI", "HEP"],
    :curated      => ["ISS", "ISO", "ISA", "ISM", "IGC", "IBA",
                      "IBD", "IKR", "IRD", "RCA", "TAS", "IC"],
    :automatic    => ["IEA"],
-   :bad          => ["NAS", "ND", "TAS"])
+   :bad          => ["NAS", "ND"],
+)
 
+const EVIDENCE_CODES_ALL = vcat(values(EVIDENCE_CODES)...)
 const EVIDENCE_CODES_TRUSTED = [EVIDENCE_CODES[:experimental]; EVIDENCE_CODES[:curated]]
 
 function OBOParse.descendants(ontology::Ontology, term::AbstractString)
