@@ -438,7 +438,33 @@ for f = ("precision", "recall", "auc")
     @eval $(Symbol(f))(p::PR) = getfield(p, Symbol($f))
 end
 
-@recipe function f(pr::PR; baseline=true, label=nothing)
+function downsample_pr(pr::PR; resolution=0.001)
+    p = precision(pr)
+    r = recall(pr)
+    resolution < 1/length(r) && throw(ArgumentError("`resolution` cannot be less than `1/length(recall(pr))`"))
+    new_p = Float64[]
+    new_r = Float64[]
+    t0 = 0.
+    t1 = t0 + resolution
+    curr_p = p[1]
+    buffer = Float64[]
+    for i in 1:length(r)
+        if r[i] > t1
+            if !isempty(buffer)
+                curr_p = maximum(buffer)
+            end
+            push!(new_p, curr_p)
+            push!(new_r, t0)
+            empty!(buffer)
+            t0 = t1
+            t1 += resolution
+        end
+        push!(buffer, p[i])
+    end
+    new_p, new_r
+end
+
+@recipe function f(pr::PR; baseline=true, label=nothing, resolution=0.001)
     xlabel := "Recall"
     ylabel := "Precision"
     xlim := (0,1)
@@ -457,7 +483,8 @@ end
         else
             label := label
         end
-        recall(pr), precision(pr)
+        p, r = downsample_pr(pr; resolution=resolution)
+        r, p
     end
 
     if baseline
