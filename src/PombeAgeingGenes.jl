@@ -118,4 +118,9 @@ export
     FunFamGOTermsIEA,
     FunFamInclusionThresholds
 
+include("pombe.jl")
+
+export
+    protein_coding_genes
+
 end # module
