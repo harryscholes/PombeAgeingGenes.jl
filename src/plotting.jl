@@ -5,9 +5,12 @@ using Distances, Clustering, LinearAlgebra, Plots, Plots.PlotMeasures
 import Clustering: nnodes
 import StatsPlots: treepositions
 
-@recipe function f(A::AbstractMatrix, hci::Hclust, hcj::Hclust)
+@recipe function f(A::AbstractMatrix, hci::Hclust, hcj::Hclust;
+    cluster_x=true, cluster_y=true)
     seriestype := :heatmap
-    A[hci.order, hcj.order]
+    hci = cluster_y ? hci.order : Colon()
+    hcj = cluster_x ? hcj.order : Colon()
+    A[hci, hcj]
 end
 
 function _clusteredheatmapsymmetric(A; metric, linkage, cor=false, kwargs...)
@@ -18,7 +21,8 @@ function _clusteredheatmapsymmetric(A; metric, linkage, cor=false, kwargs...)
 end
 
 function _clusteredheatmapasymmetric(A; metric, linkage, kwargs...)
-    hci, hcj = map(d->hclust(pairwise(metric, A, dims=d), linkage=linkage), (1,2))
+    hci = hclust(pairwise(metric, A, dims=1), linkage=linkage)
+    hcj = hclust(pairwise(metric, A, dims=2), linkage=linkage)
     plot(A, hci, hcj; kwargs...)
 end
 
