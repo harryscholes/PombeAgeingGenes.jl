@@ -101,14 +101,14 @@ function descendants2slim(s2d)
     return d
 end
 
-@file(GOSlimTargets, ENV["POMBEAGEINGGENES"] * "/data/goslim_targets.csv")
-# @file(GOSlimTargets, ENV["POMBEAGEINGGENES"] * "/data/cafa4/go_targets.csv")
+# @file(GOSlimTargets, ENV["POMBEAGEINGGENES"] * "/data/goslim_targets.csv")
+@file(GOSlimTargets, ENV["POMBEAGEINGGENES"] * "/data/cafa4/go_targets.csv")
 
 function load(x::GOSlimTargetsFile)
     df = DataFrame(load(filepath(x)))
 
-    # do the unstacking here to make it easier to parse the CSV file
-    # df = unstack(df, :id, :go, :value)
+    # For cafa4 targets, do the unstacking here to make it easier to parse the CSV file
+    df = unstack(df, :id, :go, :value)
 
     for col = names(df)
         df[!, col] = coalesce.(df[:, col], 0)
